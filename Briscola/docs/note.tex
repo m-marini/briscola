@@ -1,0 +1,129 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[italian]{babel}
+\usepackage{graphicx}
+\begin{document}
+\title{Note per briscola}
+\author{Marco Marini}
+\maketitle
+\tableofcontents
+\part{Introduzione}
+Note per l'implementazione dell'algoritmo di strategia di gioco della briscola.
+
+\section{Strategia}
+
+Per decidere quale strategia applicare si applica la teoria dei giochi.
+
+Viene definito lo stato corrente \marginpar{Stato corrente} o stato reale di gioco da parte del
+giocatore IA con gli elementi d'informazioni necessari:
+le carte possedute dal giocatore, la briscola se non è stata già pescata, le carte dell'avversario nel
+caso si sia in finale di partita,
+i punti guadagnati dal giocatore e quelli guadagnati dall'avversario, la carte giocata dall'avversario
+se era il suo turno e le carte ancora nel mazzo se non si è in finale di partita.
+
+\subsection{Turno IA}
+Analizziamo ora il caso che sia il giocatore IA ad avere la prima giocata. 
+
+Partendo dallo stato corrente si valuta la probabilità di vincita migliore alla fine della mano corrente
+\marginpar{Fine mano}, ovvero quando l'avversario ha giocato la propria carta.
+Per sceglire la strategia di gioco vengono valutati tutti i possibili stati di fine mano per ogni carta
+posseduta dal giocatore e per ogni miglior giocata tra le possibile combinazione di carte che
+l'avverario putrebbe possedere.
+La miglior giocata per l'avversario è quella che produce la maggior probabilità di vincita per lui.
+
+Le probabilità di vincita del giocatore e dell'avversario non sono complementari
+\marginpar{Non complementarietà} in quando in caso di pareggio sono entrambe nulle
+è quindi necessario valutare separatamente le due probabilità.
+
+Lo stato di fine mano è simile ad uno stato corrente \marginpar{Stato virtuale} dove in aggiunta
+si conoscono anche  le carte potenzialmente in mano all'avversario.
+La valutazione di uno stato di fine mano avviene in modo ricorsivo (deep search) analizzando
+l'albero di evoluzione del gioco 
+fino ad arrivare all'ultima giocata oppure limitando la ricerca fino ad un determinato livello
+di profondità e applicando
+in tal caso regole empiriche di valutazione meno precise.
+
+Oltre allo stato di fine mano è utile considerare gli stati intermedio di gioco cioè quando
+il giocatore che ha il turno di giocata
+ha scartato oppure lo stati virtuale di inizio mano.
+
+Vediamo il caso di stato virtuale di inizio mano \marginpar{Inizio mano} con turno IA.
+Questo caso si ha quando da uno stato di fine mano vinto da IA si considera una combinazione
+di carte pescate dal mazzo.
+Quindi se $ n $ è il numero di carte ancora nel mazzo, si avrano $ n (n - 1) $ combinazioni
+possibili di stati virtuali di inizio mano.
+
+Nel caso ci sia una sola carte nel mazzo $ n = 1 $, lo stato sucessivo sara quello di finale
+\marginpar{Finale} di partita in quanto IA pesca la carta nascosta del mazzo e l'avversario pesca
+la briscola e tutte le carte a quel punto sono conosciute da ambedue i giocatori.
+
+
+\subsection{Turno avversario}
+
+Nel caso l'avversario abbia la prima giocata lo stato corrente contiene anche la carta giocata
+dall'avversario e quindi la strategia di gioco sarà quella di valutare la miglior giocata tra le carte
+disponibile al giocatore generando quindi tutti gli stati virtuali di fine mano e sciegliendo quello
+con probabilità di vincita più alta.
+
+Vediamo il caso di stato virtuale di inizio mano \marginpar{Inizio mano} con turno avversario.
+Questo caso si ha quando da uno stato di fine mano vinto da avversario si considera
+una combinazione di carte pescate dal mazzo.
+Quindi se $ n $ è il numero di carte ancora nel mazzo, si avrano $ n (n - 1) $ combinazioni
+possibili di stati virtuali di inizio mano.
+
+La valutazione procede prendendo in considerazione la probabilità di vincita del giocatore per
+la miglior carte giocata dall'avversario la miglior carta del giocatore.
+
+\subsection{Transizione di stato}
+
+Partendo dagli stati correnti di gioco possono essere generati vari tipi di stati virtuali.
+
+
+Nel caso di ultima mano \marginpar{Ultima mano} non è necessaria alcuna strategia in quanto
+ non ci sono scelte da fare.
+
+Nel caso di finale \marginpar{Finale} di gioco si identificano due tipi di stato in base al numero
+di carte da giocare: penultima mano e terzultima mano.
+Per ogniuna dei due stati possiamo avere il caso di turno avversario e il caso di turno IA
+quindi avremo:
+\begin{itemize}
+\item
+penultima mano con turno avversario dove il giocatore ha quindi solo due carte da giocare
+che generano quindi due stati di ultima mano,
+\item
+penultima mano turno IA dove il giocatore ha 2 carte da giocare e altrettane possibilità l'avversario.
+Nel qual caso devono essere generati 2 stati virtuali intermedi e per ogniuno devono essere generati
+i 2 fine mano con le risposte avversario
+\item
+terzultima mano turno avversario dove il giocatore ha 3 carte da giocare che generano 3 stati
+virtuali di finale,
+\item
+terzultima mano turno IA dove il giocatore ha 3 carte da giocare e altreattante l'aversario.
+Vengono generati 3 stati intermedi e per ogniuno sono generati 3 stati di fine mano con
+le risposte avversarie
+\end{itemize}
+
+Nello stato corrente \marginpar{Stato corrente} durante il gioco abbiamo le due casistiche
+in base al turno.
+Nel caso del turno IA avremo tre stati intermedi per ogni possibile giocata. per ogniuno
+di questi dovranno essere generate tutte le combinazioni di carte che l'avversario può avere.
+Se $ N $ è il numero di carte nel mazzo ci saranno 
+\[
+\left( \stackrel{N}{3} \right)  = \frac{N!}{3! (N - 3)! } = \frac{N (N - 1) (N - 2)}{6}
+\]
+Per ogniuno di questi poi si dovranno considerare i 3 stati di fine mano prodotti da ogni carta
+giocata.
+
+Nel caso di turno avversario il procedimento è invertito per cui si considerano tutte gli stati
+intermedi generati dalle combinazioni di 3 carte in mano avversaria tra le N presenti nel mazzo,
+per ognuno le tre possibili scelte dell'avversario (stato intermedio) e poi i tre stati di fine di
+mano derivati dalla scelte scelte possibili del giocatore.
+
+Prendiamo poi in considerazione le transizioni dagli stati di fine mano \marginpar{Fine mano}
+agli stati di inizio mano.
+Si prendono quindi in considerazione le $ N (N-1) $ combinazioni di pescate dei 2 giocator
+per riformare le carte in mano e il turno sucessivo viene determinato dal vincitore della mano.
+
+\end{document}

@@ -1,0 +1,54 @@
+
+Inizio mano del giocatore
+
+ - deal()
+ 
+ - visualizza la distribuzione
+ 
+ - aspetta la scelta della carta da parte del giocatore
+ 
+ - play()
+
+ - visualizza la carta giocata
+
+ - think() 
+ 
+ - aspetta la scelta della carta da parte dell'AI
+ 
+ - notifyPlay()
+ 
+ - visualizza la fine mano
+ 
+ - aspetta la conferma di chiusura della mano
+ 
+ - closeHand()
+
+ - isFinished()
+   
+ 
+ Inizio di mano ad AI
+ 
+ - deal()
+
+ - visualizza la distribuzione
+
+ - think()
+ 
+ - aspetta la scelta della carta da parte dell'AI
+ 
+ - notifyPlay()
+  
+ - visualizza la carta scelta
+  
+ - aspetta la scelta della carta da parte del giocatore
+ 
+ - play()
+ 
+ - visualizza la fine mano
+  
+ - aspetta la conferma di chiusura della mano
+  
+ - closeHand()
+
+ - isFinished()
+  
