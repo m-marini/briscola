@@ -47,6 +47,8 @@ public class GameHandler {
 
 	private int level;
 
+	private TimerSearchContext ctx;
+
 	/**
 	 * 
 	 */
@@ -57,14 +59,14 @@ public class GameHandler {
 		random = new Random();
 		finished = true;
 		playerFirstHand = random.nextBoolean();
+		ctx = new TimerSearchContext();
 	}
 
 	/**
 	 * 
 	 */
-	protected void analise() {
+	private void analise() {
 		AbstractGameState state = createState();
-		TimerSearchContext ctx = new TimerSearchContext();
 		Estimation estimation = new Estimation();
 		Card bestCard = null;
 		ctx.setTimeout(timeout);
@@ -388,10 +390,21 @@ public class GameHandler {
 	}
 
 	/**
+	 *
+	 */
+	public void stopAnalysis() {
+		ctx.setTimeout(0);
+	}
+
+	/**
 	 * 
 	 */
 	public void think() {
 		logger.debug("Thinking ...");
+		level = 0;
+		aiWinProbability = 0;
+		aiLossProbability = 0;
+		confident = false;
 		if (aiCards.size() == 1) {
 			playAi(aiCards.get(0));
 		} else {

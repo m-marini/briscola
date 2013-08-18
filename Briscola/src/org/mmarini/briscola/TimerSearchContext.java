@@ -59,7 +59,7 @@ public class TimerSearchContext implements StrategySearchContext {
 	 * @return the stop
 	 */
 	@Override
-	public boolean isStop() {
+	public synchronized boolean isStop() {
 		return System.currentTimeMillis() >= timer;
 	}
 
@@ -75,7 +75,7 @@ public class TimerSearchContext implements StrategySearchContext {
 	 * 
 	 * @param timeout
 	 */
-	public void setTimeout(long timeout) {
+	public synchronized void setTimeout(long timeout) {
 		timer = System.currentTimeMillis() + timeout;
 	}
 }

@@ -66,10 +66,10 @@ public class GameOppositeState extends AbstractGameState {
 		double[] losses = new double[3];
 		boolean[] confidents = new boolean[3];
 		Arrays.fill(confidents, true);
-		double prob = 1. / n / (n - 1) / (n - 2);
-		for (int i = 0; i < n - 2; ++i) {
+		double prob = 1. / n / (n - 1);
+		for (int i = 0; i < n - 1; ++i) {
 			oppositeCards[0] = deckCards[i];
-			for (int j = i + 1; j < n - 1; ++j) {
+			for (int j = i + 1; j < n; ++j) {
 				oppositeCards[1] = deckCards[j];
 				state.setDeckCards(createAndRemove(deckCards, oppositeCards));
 				state.estimate(estimation, ctx);

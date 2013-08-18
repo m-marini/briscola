@@ -56,6 +56,7 @@ public class Main extends JFrame implements GameListener {
 	private GameHandler handler;
 	private AbstractAction dealAction;
 	private AbstractAction closeAction;
+	private AbstractAction stopAction;
 	private JLabel playerCard;
 	private JLabel aiCard;
 	private JLabel trumpCard;
@@ -227,6 +228,14 @@ public class Main extends JFrame implements GameListener {
 				deal();
 			}
 		};
+		stopAction = new AbstractAction() {
+			private static final long serialVersionUID = 9176873850943151834L;
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				stop();
+			}
+		};
 		closeAction = new AbstractAction() {
 			private static final long serialVersionUID = -5218821693988834943L;
 
@@ -235,8 +244,9 @@ public class Main extends JFrame implements GameListener {
 				closeHand();
 			}
 		};
-		dealAction.putValue(Action.NAME, "Deal");
-		closeAction.putValue(Action.NAME, "Close");
+		dealAction.putValue(Action.NAME, "Dai carte");
+		closeAction.putValue(Action.NAME, "Chiudi");
+		stopAction.putValue(Action.NAME, "Stop analisi");
 		continueButton.setAction(dealAction);
 	}
 
@@ -463,6 +473,8 @@ public class Main extends JFrame implements GameListener {
 		} else {
 			handler.think();
 			progressBar.setIndeterminate(true);
+			continueButton.setAction(stopAction);
+			stopAction.setEnabled(true);
 		}
 	}
 
@@ -472,6 +484,7 @@ public class Main extends JFrame implements GameListener {
 	private void disableButtons() {
 		dealAction.setEnabled(false);
 		closeAction.setEnabled(false);
+		stopAction.setEnabled(false);
 		for (JButton b : playerCards) {
 			b.setEnabled(false);
 		}
@@ -506,6 +519,7 @@ public class Main extends JFrame implements GameListener {
 	@Override
 	public void notifyCardPlayed(GameHandler handler) {
 		logger.debug("AI plays {}", handler.getAiCard());
+		stopAction.setEnabled(false);
 		progressBar.setIndeterminate(false);
 		refresh();
 		if (handler.isPlayerHand()) {
@@ -529,6 +543,8 @@ public class Main extends JFrame implements GameListener {
 		if (handler.isPlayerHand()) {
 			handler.think();
 			progressBar.setIndeterminate(true);
+			continueButton.setAction(stopAction);
+			stopAction.setEnabled(true);
 		} else {
 			continueButton.setAction(closeAction);
 			closeAction.setEnabled(true);
@@ -566,5 +582,12 @@ public class Main extends JFrame implements GameListener {
 			}
 			++idx;
 		}
+	}
+
+	/**
+	 * 
+	 */
+	private void stop() {
+		handler.stopAnalysis();
 	}
 }
