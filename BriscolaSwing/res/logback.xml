@@ -13,7 +13,7 @@
   <logger name="org.mmarini.briscola.VirtualAIStartState" level="debug"/> 
   <logger name="org.mmarini.briscola.VirtualOppositeStartState" level="debug"/> 
   -->
-  <root level="info"> 
+  <root level="debug"> 
     <appender-ref ref="STDOUT" /> 
   </root> 
 </configuration>

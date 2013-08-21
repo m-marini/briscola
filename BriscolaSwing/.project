@@ -3,6 +3,7 @@
 	<name>BriscolaSwing</name>
 	<comment></comment>
 	<projects>
+		<project>Briscola</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

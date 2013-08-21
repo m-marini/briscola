@@ -29,10 +29,11 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 
+import org.mmarini.briscola.AnalyzerListener;
 import org.mmarini.briscola.Card;
 import org.mmarini.briscola.GameHandler;
-import org.mmarini.briscola.GameListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +41,7 @@ import org.slf4j.LoggerFactory;
  * @author US00852
  * 
  */
-public class Main extends JFrame implements GameListener {
+public class Main extends JFrame implements AnalyzerListener {
 
 	private static final long serialVersionUID = -4312307693703220205L;
 
@@ -107,7 +108,7 @@ public class Main extends JFrame implements GameListener {
 		retro = cardSuitFactory.createRetro();
 		createActions();
 
-		handler.setGameListener(this);
+		handler.setAnalyzerListener(this);
 
 		deckCount.setEditable(false);
 		deckCount.setColumns(3);
@@ -471,10 +472,10 @@ public class Main extends JFrame implements GameListener {
 		if (handler.isPlayerHand()) {
 			enableCardButtons();
 		} else {
-			handler.think();
 			progressBar.setIndeterminate(true);
 			continueButton.setAction(stopAction);
 			stopAction.setEnabled(true);
+			startAnalysys();
 		}
 	}
 
@@ -504,6 +505,11 @@ public class Main extends JFrame implements GameListener {
 		}
 	}
 
+	/** 
+	 * @see
+	 * org.mmarini.briscola.AnalyzerListener#notifyAnalysis(org.mmarini.briscola
+	 * .GameHandler)
+	 */
 	@Override
 	public void notifyAnalysis(GameHandler handler) {
 		aiWinProb.setValue(handler.getAiWinProbability());
@@ -513,11 +519,9 @@ public class Main extends JFrame implements GameListener {
 	}
 
 	/**
-	 * @see org.mmarini.briscola.GameListener#notifyCardPlayed(org.mmarini.briscola
-	 *      .GameHandler)
+	 * 
 	 */
-	@Override
-	public void notifyCardPlayed(GameHandler handler) {
+	private void notifyCardPlayed() {
 		logger.debug("AI plays {}", handler.getAiCard());
 		stopAction.setEnabled(false);
 		progressBar.setIndeterminate(false);
@@ -541,14 +545,41 @@ public class Main extends JFrame implements GameListener {
 		refresh();
 		disableButtons();
 		if (handler.isPlayerHand()) {
-			handler.think();
 			progressBar.setIndeterminate(true);
 			continueButton.setAction(stopAction);
 			stopAction.setEnabled(true);
+			startAnalysys();
 		} else {
 			continueButton.setAction(closeAction);
 			closeAction.setEnabled(true);
 		}
+	}
+
+	/**
+	 * 
+	 */
+	private void startAnalysys() {
+		new Thread() {
+			@Override
+			public void run() {
+				doAnalisys();
+			}
+
+		}.start();
+	}
+
+	/**
+	 * 
+	 */
+	private void doAnalisys() {
+		handler.think();
+		SwingUtilities.invokeLater(new Runnable() {
+
+			@Override
+			public void run() {
+				notifyCardPlayed();
+			}
+		});
 	}
 
 	/**

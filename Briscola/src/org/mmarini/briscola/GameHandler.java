@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 public class GameHandler {
 	private static Logger logger = LoggerFactory.getLogger(GameHandler.class);
 
-	private GameListener gameListener;
+	private AnalyzerListener analyzerListener;
 	private List<Card> playerCards;
 	private boolean playerHand;
 	private Card trump;
@@ -53,9 +53,9 @@ public class GameHandler {
 	 * 
 	 */
 	public GameHandler() {
-		playerCards = new ArrayList<>(3);
-		aiCards = new ArrayList<>(3);
-		deck = new ArrayList<>(40);
+		playerCards = new ArrayList<Card>(3);
+		aiCards = new ArrayList<Card>(3);
+		deck = new ArrayList<Card>(40);
 		random = new Random();
 		finished = true;
 		playerFirstHand = random.nextBoolean();
@@ -80,7 +80,7 @@ public class GameHandler {
 				aiLossProbability = estimation.getLoss();
 				confident = estimation.isConfident();
 				level = maxLevel;
-				gameListener.notifyAnalysis(this);
+				analyzerListener.notifyAnalysis(this);
 				++maxLevel;
 			} while (!estimation.isConfident());
 		} catch (InterruptedException e) {
@@ -132,7 +132,7 @@ public class GameHandler {
 				state.setOppositeCard(playerCard);
 				s = state;
 			} else {
-				List<Card> newDeck = new ArrayList<>(deck);
+				List<Card> newDeck = new ArrayList<Card>(deck);
 				newDeck.addAll(playerCards);
 				GameOppositeState state = new GameOppositeState();
 				state.setDeckCards(newDeck.toArray(new Card[0]));
@@ -146,7 +146,7 @@ public class GameHandler {
 				state.setDeckCards();
 				s = state;
 			} else {
-				List<Card> newDeck = new ArrayList<>(deck);
+				List<Card> newDeck = new ArrayList<Card>(deck);
 				newDeck.addAll(playerCards);
 				GameAIState state = new GameAIState();
 				state.setDeckCards(newDeck.toArray(new Card[0]));
@@ -360,7 +360,6 @@ public class GameHandler {
 	private void playAi(Card card) {
 		aiCards.remove(card);
 		aiCard = card;
-		gameListener.notifyCardPlayed(this);
 	}
 
 	/**
@@ -368,8 +367,8 @@ public class GameHandler {
 	 * 
 	 * @param listener
 	 */
-	public void setGameListener(GameListener listener) {
-		gameListener = listener;
+	public void setAnalyzerListener(AnalyzerListener listener) {
+		analyzerListener = listener;
 	}
 
 	/**
@@ -408,18 +407,22 @@ public class GameHandler {
 		if (aiCards.size() == 1) {
 			playAi(aiCards.get(0));
 		} else {
-			Thread thread = new Thread() {
-
-				/**
-				 * @see java.lang.Thread#run()
-				 */
-				@Override
-				public void run() {
-					analise();
-				}
-
-			};
-			thread.start();
+			analise();
 		}
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public int getAiCardCount() {
+		return aiCards.size();
+	}
+
+	/**
+	 * @return the finished
+	 */
+	public boolean isFinished() {
+		return finished;
 	}
 }
