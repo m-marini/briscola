@@ -6,7 +6,7 @@
               as the first entry and export the buildfile again. -->
 <project basedir="." default="build" name="Briscola">
 	<property environment="env" />
-	<property name="BriscolaApp.location" value="../../../ws/briscola/BriscolaApp" />
+	<property name="BriscolaApp.location" value="../BriscolaApp" />
 	<property name="BriscolaSwing.location" value="../BriscolaSwing" />
 	<property name="BriscolaTest.location" value="../BriscolaTest" />
 	<property name="ECLIPSE_HOME" value="../../../../PortableSW/eclipse" />

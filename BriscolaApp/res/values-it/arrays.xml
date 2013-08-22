@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="think_time_name">
+        <item >Veloce</item>
+        <item >Normale</item>
+        <item >Lungo</item>
+        <item >Molto Lungo</item>
+    </string-array>
+    
+</resources>

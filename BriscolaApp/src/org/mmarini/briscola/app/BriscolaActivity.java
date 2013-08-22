@@ -12,10 +12,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
@@ -372,6 +376,7 @@ public class BriscolaActivity extends Activity implements AnalyzerListener {
 		deckCount = (TextView) findViewById(R.id.deckCount);
 
 		progressBar = (ProgressBar) findViewById(R.id.progressBar);
+		refreshSettings();
 		refreshData();
 	}
 
@@ -380,8 +385,8 @@ public class BriscolaActivity extends Activity implements AnalyzerListener {
 	 */
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		getMenuInflater().inflate(R.menu.briscola, menu);
-		return false;
+		getMenuInflater().inflate(R.menu.main, menu);
+		return true;
 	}
 
 	/**
@@ -469,5 +474,61 @@ public class BriscolaActivity extends Activity implements AnalyzerListener {
 				analyze();
 			}
 		}.start();
+	}
+
+	/**
+	 * @see android.app.Activity#onOptionsItemSelected(android.view.MenuItem)
+	 */
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case R.id.action_settings:
+			showOptions();
+			break;
+
+		default:
+			break;
+		}
+		return super.onOptionsItemSelected(item);
+	}
+
+	/**
+	 * 
+	 */
+	private void showOptions() {
+		Intent intent = new Intent(this, SettingsActivity.class);
+		startActivity(intent);
+	}
+
+	/**
+	 * @see android.app.Activity#onPause()
+	 */
+	@Override
+	protected void onPause() {
+		super.onPause();
+	}
+
+	/**
+	 * @see android.app.Activity#onResume()
+	 */
+	@Override
+	protected void onResume() {
+		refreshSettings();
+		super.onResume();
+	}
+
+	/**
+	 * 
+	 */
+	private void refreshSettings() {
+		SharedPreferences sharePrefs = PreferenceManager
+				.getDefaultSharedPreferences(this);
+		String value = sharePrefs.getString("think_time", "10");
+		try {
+			long thinkTime = Long.parseLong(value);
+			handler.setTimeout(thinkTime);
+		} catch (NumberFormatException e) {
+			logger.error("Invalid value", e);
+		}
 	}
 }

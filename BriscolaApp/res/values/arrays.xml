@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="think_time_name">
+        <item >Fast</item>
+        <item >Normal</item>
+        <item >Long</item>
+        <item >Very Long</item>
+    </string-array>
+    <string-array name="think_time_value">
+        <item >1</item>
+        <item >10</item>
+        <item >30</item>
+        <item >60</item>
+    </string-array>
+    
+</resources>

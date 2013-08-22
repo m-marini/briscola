@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Briscola</string>
+    <string name="action_settings">Impostazioni</string>
+    <string name="title_activity_main">Briscola</string>
+    <string name="playerWonText">Vittorie: %d</string>
+    <string name="aiWonText">Vittorie: %d</string>
+    <string name="playerScoreText">Punti: %d</string>
+    <string name="aiScoreText">Punti: %d</string>
+    <string name="deckCountText">Carte: %d</string>
+    <string name="title_activity_settings">Impostazioni</string>
+    <string name="think_time_name">Tempo di analisi</string>
+
+</resources>

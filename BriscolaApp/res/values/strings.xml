@@ -9,5 +9,8 @@
     <string name="playerScoreText">Score: %d</string>
     <string name="aiScoreText">Score: %d</string>
     <string name="deckCountText">Cards: %d</string>
-    
+    <string name="title_activity_settings">SettingsActivity</string>
+    <string name="think_time_name">Think time</string>
+    <string name="default_think_time_value">10</string>
+
 </resources>

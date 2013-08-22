@@ -5,8 +5,9 @@
     android:versionName="1.0" >
 
     <uses-sdk
+        android:maxSdkVersion="10"
         android:minSdkVersion="8"
-        android:targetSdkVersion="10" android:maxSdkVersion="10"/>
+        android:targetSdkVersion="10" />
 
     <application
         android:allowBackup="true"
@@ -22,6 +23,13 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+        <activity
+            android:name="org.mmarini.briscola.app.SettingsActivity"
+            android:label="@string/title_activity_settings" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="org.mmarini.briscola.app.BriscolaActivity" />
         </activity>
     </application>
 
