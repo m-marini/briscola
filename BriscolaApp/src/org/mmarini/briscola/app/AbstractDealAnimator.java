@@ -2,6 +2,7 @@ package org.mmarini.briscola.app;
 
 import android.app.Activity;
 import android.graphics.drawable.Drawable;
+import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationSet;
 import android.widget.ImageView;
@@ -31,11 +32,13 @@ public abstract class AbstractDealAnimator extends AbstractAnimator {
 		AnimationSet main = new AnimationSet(false);
 		main.addAnimation(createChangeDrawable(cardViewId,
 				R.drawable.retro_rot, 10));
+		main.addAnimation(createBringOnFront(cardViewId, 1));
 		main.addAnimation(createRotation(-90f, 0f, 0));
 		main.addAnimation(createTranslation(cardViewId, R.id.deck, cardViewId,
 				0));
 		main.setStartOffset(startOffset);
-		getActivity().findViewById(cardViewId).startAnimation(main);
+		View cardView = getActivity().findViewById(cardViewId);
+		cardView.startAnimation(main);
 		return main;
 	}
 
@@ -49,6 +52,7 @@ public abstract class AbstractDealAnimator extends AbstractAnimator {
 			long startOffset) {
 		AnimationSet set = new AnimationSet(false);
 		set.addAnimation(createChangeDrawable(cardViewId, R.drawable.retro, 1));
+		set.addAnimation(createBringOnFront(cardViewId, 1));
 		set.addAnimation(createRotation(90f, 0f, 0));
 		set.addAnimation(createTranslation(cardViewId, R.id.deck, cardViewId, 0));
 		set.addAnimation(createHorizontalFlipIn(computeDuration(1)));
@@ -56,7 +60,8 @@ public abstract class AbstractDealAnimator extends AbstractAnimator {
 				computeDuration(2)));
 		set.addAnimation(createHorizontalFlipOut(computeDuration(2)));
 		set.setStartOffset(startOffset);
-		getActivity().findViewById(cardViewId).startAnimation(set);
+		View cardView = getActivity().findViewById(cardViewId);
+		cardView.startAnimation(set);
 		return set;
 	}
 

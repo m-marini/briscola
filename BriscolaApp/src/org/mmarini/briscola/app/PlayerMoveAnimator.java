@@ -41,7 +41,9 @@ public class PlayerMoveAnimator extends AbstractAnimator {
 				computeDuration(1)));
 		set.setAnimationListener(getAnimationListener());
 		Activity activity = getActivity();
-		activity.findViewById(cardViewId).startAnimation(set);
+		View view = activity.findViewById(cardViewId);
+		view.bringToFront();
+		view.startAnimation(set);
 
 		/*
 		 * Show player card on desk
@@ -49,6 +51,7 @@ public class PlayerMoveAnimator extends AbstractAnimator {
 		Card playerCard = getHandler().getPlayerCard();
 		int cardId = cardDrawableFactory.findResId(playerCard);
 		View playerCardView = activity.findViewById(R.id.playerCard);
+		playerCardView.bringToFront();
 		playerCardView.startAnimation(createChangeDrawable(R.id.playerCard,
 				cardId, computeDuration(1)));
 	}

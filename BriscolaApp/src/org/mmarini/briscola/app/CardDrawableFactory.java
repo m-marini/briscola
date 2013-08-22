@@ -17,6 +17,14 @@ import org.mmarini.briscola.Card.Suit;
 public class CardDrawableFactory {
 
 	private static CardDrawableFactory instance = new CardDrawableFactory();
+
+	/**
+	 * @return the instance
+	 */
+	public static CardDrawableFactory getInstance() {
+		return instance;
+	}
+
 	private Map<Card, Integer> cardMap;
 
 	/**
@@ -113,13 +121,6 @@ public class CardDrawableFactory {
 	 */
 	public int findResId(Card card) {
 		return cardMap.get(card);
-	}
-
-	/**
-	 * @return the instance
-	 */
-	public static CardDrawableFactory getInstance() {
-		return instance;
 	}
 
 }

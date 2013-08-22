@@ -31,25 +31,13 @@ public class NextDealAnimator extends AbstractDealAnimator {
 	 * 
 	 * @param playerCardId
 	 * @param newCard
+	 * @return
 	 */
-	public void start(int playerCardId, Card newCard) {
-		addSwapOut(R.id.aiCard);
-		Animation last = addSwapOut(R.id.playerCard);
-		GameHandler handler = getHandler();
-		if (handler.getAiCardCount() == 3) {
-			if (handler.getDeckCount() == 0) {
-				if (handler.isPlayerHand()) {
-					last = addDealPlayerLastHand(playerCardId, newCard);
-				} else {
-					last = addDeaAILastHand(playerCardId);
-				}
-			} else if (handler.isPlayerHand()) {
-				last = addDealPlayerHand(playerCardId, newCard);
-			} else {
-				last = addDeaAIHand(playerCardId, newCard);
-			}
-		}
-		last.setAnimationListener(getAnimationListener());
+	private Animation addDeaAIHand(int playerCardId, Card newCard) {
+		int resId = cardDrawableFactory.findResId(newCard);
+		addDealAI(R.id.aiCard3, computeDuration(1));
+		Animation last = addDealPlayer(playerCardId, resId, computeDuration(2));
+		return last;
 	}
 
 	/**
@@ -77,20 +65,14 @@ public class NextDealAnimator extends AbstractDealAnimator {
 	/**
 	 * 
 	 * @param playerCardId
-	 * @param i
+	 * @param newCard
 	 * @return
 	 */
-	private Animation addTrumpToPlayer(int playerCardId, long startOffset) {
-		Animation anim = createTranslation(playerCardId, R.id.trumpCard,
-				playerCardId, startOffset);
-		ImageView cardView = (ImageView) getActivity().findViewById(
-				playerCardId);
-		cardView.startAnimation(anim);
-
-		getActivity().findViewById(R.id.trumpCard).startAnimation(
-				createChangeDrawable(R.id.trumpCard, R.drawable.empty,
-						startOffset));
-		return anim;
+	private Animation addDealPlayerHand(int playerCardId, Card newCard) {
+		int resId = cardDrawableFactory.findResId(newCard);
+		addDealPlayer(playerCardId, resId, computeDuration(1));
+		Animation last = addDealAI(R.id.aiCard3, computeDuration(2));
+		return last;
 	}
 
 	/**
@@ -118,12 +100,13 @@ public class NextDealAnimator extends AbstractDealAnimator {
 		int trumpId = cardDrawableFactory.findResId(getHandler().getTrump());
 		AnimationSet set = new AnimationSet(false);
 		set.addAnimation(createChangeDrawable(R.id.aiCard3, trumpId, 1));
+		set.addAnimation(createBringOnFront(R.id.aiCard3, 1));
 		set.addAnimation(createTranslation(R.id.aiCard3, R.id.trumpCard,
 				R.id.aiCard3, 0));
-		set.addAnimation(createHorizontalFlipIn(computeDuration(1)));
+		set.addAnimation(createVerticalFlipIn(computeDuration(1)));
 		set.addAnimation(createChangeDrawable(R.id.aiCard3,
 				R.drawable.retro_rot, computeDuration(2)));
-		set.addAnimation(createHorizontalFlipOut(computeDuration(2)));
+		set.addAnimation(createVerticalFlipOut(computeDuration(2)));
 		set.setStartOffset(startOffset);
 
 		Activity activity = getActivity();
@@ -138,26 +121,48 @@ public class NextDealAnimator extends AbstractDealAnimator {
 	/**
 	 * 
 	 * @param playerCardId
-	 * @param newCard
+	 * @param i
 	 * @return
 	 */
-	private Animation addDeaAIHand(int playerCardId, Card newCard) {
-		int resId = cardDrawableFactory.findResId(newCard);
-		addDealAI(R.id.aiCard3, computeDuration(1));
-		Animation last = addDealPlayer(playerCardId, resId, computeDuration(2));
-		return last;
+	private Animation addTrumpToPlayer(int playerCardId, long startOffset) {
+		AnimationSet set = new AnimationSet(false);
+		set.addAnimation(createTranslation(playerCardId, R.id.trumpCard,
+				playerCardId, 0));
+		set.addAnimation(createBringOnFront(playerCardId, 1));
+		set.setStartOffset(startOffset);
+
+		ImageView cardView = (ImageView) getActivity().findViewById(
+				playerCardId);
+		cardView.startAnimation(set);
+
+		getActivity().findViewById(R.id.trumpCard).startAnimation(
+				createChangeDrawable(R.id.trumpCard, R.drawable.empty,
+						startOffset));
+		return set;
 	}
 
 	/**
 	 * 
 	 * @param playerCardId
 	 * @param newCard
-	 * @return
 	 */
-	private Animation addDealPlayerHand(int playerCardId, Card newCard) {
-		int resId = cardDrawableFactory.findResId(newCard);
-		addDealPlayer(playerCardId, resId, computeDuration(1));
-		Animation last = addDealAI(R.id.aiCard3, computeDuration(2));
-		return last;
+	public void start(int playerCardId, Card newCard) {
+		addSwapOut(R.id.aiCard);
+		Animation last = addSwapOut(R.id.playerCard);
+		GameHandler handler = getHandler();
+		if (handler.getAiCardCount() == 3) {
+			if (handler.getDeckCount() == 0) {
+				if (handler.isPlayerHand()) {
+					last = addDealPlayerLastHand(playerCardId, newCard);
+				} else {
+					last = addDeaAILastHand(playerCardId);
+				}
+			} else if (handler.isPlayerHand()) {
+				last = addDealPlayerHand(playerCardId, newCard);
+			} else {
+				last = addDeaAIHand(playerCardId, newCard);
+			}
+		}
+		last.setAnimationListener(getAnimationListener());
 	}
 }

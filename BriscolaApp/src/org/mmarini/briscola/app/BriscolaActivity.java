@@ -91,7 +91,7 @@ public class BriscolaActivity extends Activity implements AnalyzerListener {
 		aiMoveAnimator.setHandler(handler);
 		cleanUpAnimator.setHandler(handler);
 
-		handler.setSeed(1);
+		// handler.setSeed(1);
 		handler.setTimeout(THINK_DURATION);
 		cleanUpAnimator.setAnimationListener(new AnimationListener() {
 
@@ -100,7 +100,8 @@ public class BriscolaActivity extends Activity implements AnalyzerListener {
 			 * @param animation
 			 */
 			@Override
-			public void onAnimationStart(Animation animation) {
+			public void onAnimationEnd(Animation animation) {
+				onCleanUpEnd();
 			}
 
 			/**
@@ -116,8 +117,7 @@ public class BriscolaActivity extends Activity implements AnalyzerListener {
 			 * @param animation
 			 */
 			@Override
-			public void onAnimationEnd(Animation animation) {
-				onCleanUpEnd();
+			public void onAnimationStart(Animation animation) {
 			}
 		});
 		playerAnimator.setAnimationListener(new AnimationListener() {
@@ -201,13 +201,6 @@ public class BriscolaActivity extends Activity implements AnalyzerListener {
 				return true;
 			}
 		};
-	}
-
-	/**
-	 * 
-	 */
-	private void onCleanUpEnd() {
-		dealForStart();
 	}
 
 	/**
@@ -343,6 +336,33 @@ public class BriscolaActivity extends Activity implements AnalyzerListener {
 	}
 
 	/**
+	 * 
+	 */
+	private void onAIMoveEnd() {
+		logger.debug("handleEndAIMove");
+		if (handler.isPlayerHand()) {
+			enableDeal(dealNextListener);
+		} else {
+			enableCardButtons();
+		}
+	}
+
+	/**
+	 * 
+	 */
+	private void onAnalysisEnd() {
+		progressBar.setVisibility(View.INVISIBLE);
+		aiMoveAnimator.start();
+	}
+
+	/**
+	 * 
+	 */
+	private void onCleanUpEnd() {
+		dealForStart();
+	}
+
+	/**
 	 * @see android.app.Activity#onCreate(android.os.Bundle)
 	 */
 	@Override
@@ -392,26 +412,6 @@ public class BriscolaActivity extends Activity implements AnalyzerListener {
 	/**
 	 * 
 	 */
-	private void onAIMoveEnd() {
-		logger.debug("handleEndAIMove");
-		if (handler.isPlayerHand()) {
-			enableDeal(dealNextListener);
-		} else {
-			enableCardButtons();
-		}
-	}
-
-	/**
-	 * 
-	 */
-	private void onAnalysisEnd() {
-		progressBar.setVisibility(View.INVISIBLE);
-		aiMoveAnimator.start();
-	}
-
-	/**
-	 * 
-	 */
 	private void onInitialDealEnd() {
 		refreshData();
 		if (handler.isPlayerHand()) {
@@ -434,6 +434,30 @@ public class BriscolaActivity extends Activity implements AnalyzerListener {
 	}
 
 	/**
+	 * @see android.app.Activity#onOptionsItemSelected(android.view.MenuItem)
+	 */
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case R.id.action_settings:
+			showOptions();
+			break;
+
+		default:
+			break;
+		}
+		return super.onOptionsItemSelected(item);
+	}
+
+	/**
+	 * @see android.app.Activity#onPause()
+	 */
+	@Override
+	protected void onPause() {
+		super.onPause();
+	}
+
+	/**
 	 * 
 	 */
 	private void onPlayerMoveEnd() {
@@ -442,6 +466,15 @@ public class BriscolaActivity extends Activity implements AnalyzerListener {
 		} else {
 			enableDeal(dealNextListener);
 		}
+	}
+
+	/**
+	 * @see android.app.Activity#onResume()
+	 */
+	@Override
+	protected void onResume() {
+		refreshSettings();
+		super.onResume();
 	}
 
 	/**
@@ -463,61 +496,6 @@ public class BriscolaActivity extends Activity implements AnalyzerListener {
 	}
 
 	/**
-	 *
-	 */
-	private void startAnalysis() {
-		logger.debug("Analysing ...");
-		progressBar.setVisibility(View.VISIBLE);
-		new Thread() {
-			@Override
-			public void run() {
-				analyze();
-			}
-		}.start();
-	}
-
-	/**
-	 * @see android.app.Activity#onOptionsItemSelected(android.view.MenuItem)
-	 */
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		switch (item.getItemId()) {
-		case R.id.action_settings:
-			showOptions();
-			break;
-
-		default:
-			break;
-		}
-		return super.onOptionsItemSelected(item);
-	}
-
-	/**
-	 * 
-	 */
-	private void showOptions() {
-		Intent intent = new Intent(this, SettingsActivity.class);
-		startActivity(intent);
-	}
-
-	/**
-	 * @see android.app.Activity#onPause()
-	 */
-	@Override
-	protected void onPause() {
-		super.onPause();
-	}
-
-	/**
-	 * @see android.app.Activity#onResume()
-	 */
-	@Override
-	protected void onResume() {
-		refreshSettings();
-		super.onResume();
-	}
-
-	/**
 	 * 
 	 */
 	private void refreshSettings() {
@@ -530,5 +508,27 @@ public class BriscolaActivity extends Activity implements AnalyzerListener {
 		} catch (NumberFormatException e) {
 			logger.error("Invalid value", e);
 		}
+	}
+
+	/**
+	 * 
+	 */
+	private void showOptions() {
+		Intent intent = new Intent(this, SettingsActivity.class);
+		startActivity(intent);
+	}
+
+	/**
+	 *
+	 */
+	private void startAnalysis() {
+		logger.debug("Analysing ...");
+		progressBar.setVisibility(View.VISIBLE);
+		new Thread() {
+			@Override
+			public void run() {
+				analyze();
+			}
+		}.start();
 	}
 }

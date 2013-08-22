@@ -6,6 +6,7 @@ package org.mmarini.briscola.app;
 import org.mmarini.briscola.GameHandler;
 
 import android.app.Activity;
+import android.view.View;
 import android.view.animation.AnimationSet;
 import android.widget.ImageView;
 
@@ -57,7 +58,9 @@ public class AIMoveAnimator extends AbstractAnimator {
 		animation.setAnimationListener(getAnimationListener());
 
 		Activity activity = getActivity();
-		activity.findViewById(R.id.aiCard).startAnimation(animation);
+		View cardView = activity.findViewById(R.id.aiCard);
+		cardView.bringToFront();
+		cardView.startAnimation(animation);
 
 		ImageView aiCardFrom = (ImageView) activity.findViewById(cardId);
 		aiCardFrom.setImageResource(R.drawable.empty);
