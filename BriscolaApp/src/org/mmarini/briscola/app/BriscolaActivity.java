@@ -504,7 +504,7 @@ public class BriscolaActivity extends Activity implements AnalyzerListener {
 		String value = sharePrefs.getString("think_time", "10");
 		try {
 			long thinkTime = Long.parseLong(value);
-			handler.setTimeout(thinkTime);
+			handler.setTimeout(thinkTime * 1000);
 		} catch (NumberFormatException e) {
 			logger.error("Invalid value", e);
 		}
