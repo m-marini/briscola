@@ -1,7 +1,6 @@
 package org.mmarini.briscola.app;
 
 import org.mmarini.briscola.GameHandler;
-import org.slf4j.LoggerFactory;
 
 import android.app.Activity;
 import android.view.View;
@@ -93,8 +92,6 @@ public abstract class AbstractAnimator {
 		 */
 		@Override
 		public void onAnimationEnd(Animation animation) {
-			LoggerFactory.getLogger(OnAnimationEndChangeDrawable.class).info(
-					"onAnimationEnd {} {}", target, Integer.toHexString(resId));
 			target.setImageResource(resId);
 			animation.setAnimationListener(null);
 		}

@@ -4,6 +4,7 @@
 package org.mmarini.briscola;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
@@ -15,38 +16,47 @@ import org.slf4j.LoggerFactory;
  * 
  */
 public class GameHandler {
+	public enum GameStatus {
+		DEAL, AI_MOVE, PLAYER_MOVE, CLOSE_HAND, FINISHED
+	}
+
+	private static final String STATUS_KEY = "status";
+	private static final String PLAYER_CARDS_KEY = "playerCards";
+	private static final String AI_CARDS_KEY = "aiCards";
+	private static final String DECK_KEY = "deck";
+	private static final String PLAYER_SCORE_KEY = "playerScore";
+	private static final String AI_SCORE_KEY = "aiScore";
+	private static final String TRUMP_KEY = "trump";
+	private static final String PLAYER_WON_GAME_KEY = "playerWonGame";
+	private static final String AI_WON_GAME_KEY = "aiWonGame";
+	private static final String AI_CARD_KEY = "aiCard";
+	private static final String PLAYER_CARD_KEY = "playerCard";
+	private static final String PLAYER_HAND_KEY = "playerHand";
+
+	private static final String PLAYER_FIRST_HAND_KEY = "playerFirstHand";
+
 	private static Logger logger = LoggerFactory.getLogger(GameHandler.class);
 
 	private AnalyzerListener analyzerListener;
 	private List<Card> playerCards;
-	private boolean playerHand;
-	private Card trump;
+	private List<Card> aiCards;
 	private List<Card> deck;
-	private Random random;
+	private Card trump;
 	private int playerScore;
 	private int aiScore;
+	private boolean playerHand;
+	private boolean playerFirstHand;
+	private Random random;
 	private Card aiCard;
 	private Card playerCard;
-	private boolean finished;
-	private List<Card> aiCards;
-	private boolean playerFirstHand;
 	private int playerWonGame;
 	private int aiWonGame;
-
-	private boolean playerWinner;
-
-	private boolean aiWinner;
-
 	private long timeout;
-
 	private boolean confident;
-
 	private double aiLossProbability;
-
 	private double aiWinProbability;
-
 	private int level;
-
+	private GameStatus status;
 	private TimerSearchContext ctx;
 
 	/**
@@ -57,9 +67,9 @@ public class GameHandler {
 		aiCards = new ArrayList<Card>(3);
 		deck = new ArrayList<Card>(40);
 		random = new Random();
-		finished = true;
 		playerFirstHand = random.nextBoolean();
 		ctx = new TimerSearchContext();
+		status = GameStatus.FINISHED;
 	}
 
 	/**
@@ -80,12 +90,51 @@ public class GameHandler {
 				aiLossProbability = estimation.getLoss();
 				confident = estimation.isConfident();
 				level = maxLevel;
-				analyzerListener.notifyAnalysis(this);
+				if (analyzerListener != null)
+					analyzerListener.notifyAnalysis(this);
 				++maxLevel;
 			} while (!estimation.isConfident());
 		} catch (InterruptedException e) {
 		}
 		playAi(bestCard);
+	}
+
+	/**
+	 * 
+	 * @param memento
+	 */
+	public void applyMemento(GameMemento memento) {
+		memento.getCardList(playerCards, PLAYER_CARDS_KEY);
+		memento.getCardList(aiCards, AI_CARDS_KEY);
+		memento.getCardList(deck, DECK_KEY);
+		playerScore = memento.getInt(PLAYER_SCORE_KEY);
+		aiScore = memento.getInt(AI_SCORE_KEY);
+		trump = memento.getCard(TRUMP_KEY);
+		playerWonGame = memento.getInt(PLAYER_WON_GAME_KEY);
+		aiWonGame = memento.getInt(AI_WON_GAME_KEY);
+		aiCard = memento.getCard(AI_CARD_KEY);
+		playerCard = memento.getCard(PLAYER_CARD_KEY);
+		playerHand = memento.getBoolean(PLAYER_HAND_KEY);
+		playerFirstHand = memento.getBoolean(PLAYER_FIRST_HAND_KEY);
+		status = memento.getStatus(STATUS_KEY);
+	}
+
+	/**
+	 * 
+	 */
+	public void clear() {
+		playerCards.clear();
+		aiCards.clear();
+		deck.clear();
+		playerFirstHand = random.nextBoolean();
+		trump = null;
+		playerScore = 0;
+		aiScore = 0;
+		aiCard = null;
+		playerCard = null;
+		playerWonGame = 0;
+		aiWonGame = 0;
+		status = GameStatus.FINISHED;
 	}
 
 	/**
@@ -106,16 +155,50 @@ public class GameHandler {
 		}
 		playerCard = null;
 		aiCard = null;
-		playerWinner = playerScore > 60;
-		aiWinner = aiScore > 60;
-		finished = playerWinner || aiWinner || playerCards.isEmpty();
+		boolean playerWinner = playerScore > 60;
+		boolean aiWinner = aiScore > 60;
+		boolean finished = playerWinner || aiWinner || playerCards.isEmpty();
 		playerHand = win;
 		if (finished) {
 			if (aiWinner)
 				++aiWonGame;
 			if (playerWinner)
 				++playerWonGame;
+			status = GameStatus.FINISHED;
+		} else {
+			status = GameStatus.DEAL;
 		}
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public GameMemento createMemento() {
+		GameMemento memento = new GameMemento();
+		createMemento(memento);
+		return memento;
+	}
+
+	/**
+	 * 
+	 * @param memento
+	 */
+	public void createMemento(GameMemento memento) {
+		memento.clear();
+		memento.set(PLAYER_CARDS_KEY, playerCards);
+		memento.set(AI_CARDS_KEY, aiCards);
+		memento.set(DECK_KEY, deck);
+		memento.set(PLAYER_SCORE_KEY, playerScore);
+		memento.set(AI_SCORE_KEY, aiScore);
+		memento.set(TRUMP_KEY, trump);
+		memento.set(PLAYER_WON_GAME_KEY, playerWonGame);
+		memento.set(AI_WON_GAME_KEY, aiWonGame);
+		memento.set(AI_CARD_KEY, aiCard);
+		memento.set(PLAYER_CARD_KEY, playerCard);
+		memento.set(PLAYER_HAND_KEY, playerHand);
+		memento.set(PLAYER_FIRST_HAND_KEY, playerFirstHand);
+		memento.set(STATUS_KEY, status);
 	}
 
 	/**
@@ -165,10 +248,10 @@ public class GameHandler {
 	 */
 	public void deal() {
 		int n = deck.size();
-		if (finished) {
+		if (isFinished()) {
 			initNewGame();
 		} else if (n == 1) {
-			Card card = dealCard(deck);
+			Card card = dealCard();
 			if (playerHand) {
 				playerCards.add(card);
 				aiCards.add(trump);
@@ -177,10 +260,15 @@ public class GameHandler {
 				playerCards.add(trump);
 			}
 		} else if (n > 1) {
-			Card card = dealCard(deck);
+			Card card = dealCard();
 			playerCards.add(card);
-			card = dealCard(deck);
+			card = dealCard();
 			aiCards.add(card);
+		}
+		if (playerHand) {
+			status = GameStatus.PLAYER_MOVE;
+		} else {
+			status = GameStatus.AI_MOVE;
 		}
 	}
 
@@ -188,12 +276,8 @@ public class GameHandler {
 	 * 
 	 * @return
 	 */
-	private Card dealCard(List<Card> list) {
-		int n = list.size();
-		int idx = 0;
-		if (n > 1)
-			idx = random.nextInt(n);
-		Card card = list.remove(idx);
+	private Card dealCard() {
+		Card card = deck.remove(0);
 		return card;
 	}
 
@@ -203,6 +287,14 @@ public class GameHandler {
 	 */
 	public Card getAiCard() {
 		return aiCard;
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public int getAiCardCount() {
+		return aiCards.size();
 	}
 
 	/**
@@ -291,6 +383,13 @@ public class GameHandler {
 	}
 
 	/**
+	 * @return the status
+	 */
+	public GameStatus getStatus() {
+		return status;
+	}
+
+	/**
 	 * 
 	 * @return
 	 */
@@ -310,22 +409,23 @@ public class GameHandler {
 		for (Card c : Card.getDeck()) {
 			deck.add(c);
 		}
+		shuffle();
 		playerCards.clear();
 		aiCards.clear();
 		for (int i = 0; i < 3; ++i) {
-			Card card = dealCard(deck);
+			Card card = dealCard();
 			playerCards.add(card);
-			card = dealCard(deck);
+			card = dealCard();
 			aiCards.add(card);
 		}
-		trump = dealCard(deck);
+		trump = dealCard();
 	}
 
 	/**
 	 * @return the aiWinner
 	 */
 	public boolean isAiWinner() {
-		return aiWinner;
+		return aiScore > 60;
 	}
 
 	/**
@@ -334,6 +434,13 @@ public class GameHandler {
 	 */
 	public boolean isConfident() {
 		return confident;
+	}
+
+	/**
+	 * @return the finished
+	 */
+	public boolean isFinished() {
+		return GameStatus.FINISHED.equals(status);
 	}
 
 	/**
@@ -351,6 +458,11 @@ public class GameHandler {
 	public void play(Card card) {
 		playerCard = card;
 		playerCards.remove(card);
+		if (playerHand) {
+			status = GameStatus.AI_MOVE;
+		} else {
+			status = GameStatus.CLOSE_HAND;
+		}
 	}
 
 	/**
@@ -360,6 +472,11 @@ public class GameHandler {
 	private void playAi(Card card) {
 		aiCards.remove(card);
 		aiCard = card;
+		if (playerHand) {
+			status = GameStatus.CLOSE_HAND;
+		} else {
+			status = GameStatus.PLAYER_MOVE;
+		}
 	}
 
 	/**
@@ -389,6 +506,13 @@ public class GameHandler {
 	}
 
 	/**
+	 * 
+	 */
+	private void shuffle() {
+		Collections.shuffle(deck, random);
+	}
+
+	/**
 	 *
 	 */
 	public void stopAnalysis() {
@@ -409,20 +533,5 @@ public class GameHandler {
 		} else {
 			analise();
 		}
-	}
-
-	/**
-	 * 
-	 * @return
-	 */
-	public int getAiCardCount() {
-		return aiCards.size();
-	}
-
-	/**
-	 * @return the finished
-	 */
-	public boolean isFinished() {
-		return finished;
 	}
 }

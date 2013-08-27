@@ -5,9 +5,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.mmarini.briscola.AnalyzerListener;
 import org.mmarini.briscola.Card;
 import org.mmarini.briscola.GameHandler;
+import org.mmarini.briscola.GameMemento;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,6 +16,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.view.Menu;
@@ -34,11 +35,15 @@ import android.widget.TextView;
  * @author us00852
  * 
  */
-public class BriscolaActivity extends Activity implements AnalyzerListener {
+public class BriscolaActivity extends Activity {
+	private static final String GAME_HANDLER_KEY = "gameHandler";
 	private static final int THINK_DURATION = 1000;
+	private static final String TEST_STATE = "aiWonGame=0;playerCards=18,10,11;playerHand=true;playerWonGame=0;aiScore=60;playerFirstHand=false;aiCards=0,1,2;status=PLAYER_MOVE;"
+			+ "deck=20;" + "trump=8;playerScore=40;";
 
 	private static Logger logger = LoggerFactory
 			.getLogger(BriscolaActivity.class);
+
 	private ImageView[] playerCards;
 	private ImageView[] aiCards;
 	private ImageView deck;
@@ -61,6 +66,8 @@ public class BriscolaActivity extends Activity implements AnalyzerListener {
 	private ImageView aiCard;
 	private ImageView playerCard;
 	private CleanUpAnimator cleanUpAnimator;
+	private String gameStateBackUp;
+	private CardDrawableFactory cardDrawableFactory;
 
 	/**
 	 * 
@@ -75,6 +82,7 @@ public class BriscolaActivity extends Activity implements AnalyzerListener {
 		nextDealAnimator = new NextDealAnimator(this);
 		playerAnimator = new PlayerMoveAnimator(this);
 		cleanUpAnimator = new CleanUpAnimator(this);
+		cardDrawableFactory = CardDrawableFactory.getInstance();
 		playerCardListener = new OnTouchListener() {
 
 			@Override
@@ -84,7 +92,6 @@ public class BriscolaActivity extends Activity implements AnalyzerListener {
 			}
 		};
 
-		handler.setAnalyzerListener(this);
 		initalDealAnimator.setHandler(handler);
 		nextDealAnimator.setHandler(handler);
 		playerAnimator.setHandler(handler);
@@ -210,20 +217,21 @@ public class BriscolaActivity extends Activity implements AnalyzerListener {
 		logger.debug("Running analisys ...");
 		handler.think();
 		logger.debug("Analisys completed.");
-		runOnUiThread(new Runnable() {
+	}
 
-			@Override
-			public void run() {
-				onAnalysisEnd();
-			}
-		});
+	/**
+	 * 
+	 */
+	private void backUpGameState() {
+		gameStateBackUp = handler.createMemento().toString();
+		logger.debug("Backup: {}", gameStateBackUp);
 	}
 
 	/**
 	 * 
 	 * @return
 	 */
-	private void dealForStart() {
+	void dealForStart() {
 		disableButtons();
 		handler.deal();
 		refreshData();
@@ -314,10 +322,17 @@ public class BriscolaActivity extends Activity implements AnalyzerListener {
 	}
 
 	/**
+	 * @return the handler
+	 */
+	public GameHandler getHandler() {
+		return handler;
+	}
+
+	/**
 	 * 
 	 * @param view
 	 */
-	private void movePlayerCard(View view) {
+	void movePlayerCard(View view) {
 		disableButtons();
 		movedCardId = view.getId();
 		Card card = getCardByResId(movedCardId);
@@ -327,19 +342,11 @@ public class BriscolaActivity extends Activity implements AnalyzerListener {
 	}
 
 	/**
-	 * @see org.mmarini.briscola.AnalyzerListener#notifyAnalysis(org.mmarini.briscola
-	 *      .GameHandler)
-	 */
-	@Override
-	public void notifyAnalysis(GameHandler handler) {
-		// TODO Auto-generated method stub
-	}
-
-	/**
 	 * 
 	 */
 	private void onAIMoveEnd() {
-		logger.debug("handleEndAIMove");
+		logger.debug("onAIMoveEnd");
+		backUpGameState();
 		if (handler.isPlayerHand()) {
 			enableDeal(dealNextListener);
 		} else {
@@ -351,14 +358,18 @@ public class BriscolaActivity extends Activity implements AnalyzerListener {
 	 * 
 	 */
 	private void onAnalysisEnd() {
-		progressBar.setVisibility(View.INVISIBLE);
-		aiMoveAnimator.start();
+		logger.debug("onAnalysisEnd");
+		if (!isFinishing()) {
+			progressBar.setVisibility(View.INVISIBLE);
+			aiMoveAnimator.start();
+		}
 	}
 
 	/**
 	 * 
 	 */
 	private void onCleanUpEnd() {
+		logger.debug("onCleanUpEnd");
 		dealForStart();
 	}
 
@@ -368,6 +379,14 @@ public class BriscolaActivity extends Activity implements AnalyzerListener {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
+		logger.debug("onCreate");
+		if (savedInstanceState != null) {
+			restoreHandler(savedInstanceState);
+		} else {
+			handler.clear();
+
+		}
 		setContentView(R.layout.activity_briscola);
 
 		playerCards[0] = (ImageView) findViewById(R.id.playerCard1);
@@ -396,8 +415,10 @@ public class BriscolaActivity extends Activity implements AnalyzerListener {
 		deckCount = (TextView) findViewById(R.id.deckCount);
 
 		progressBar = (ProgressBar) findViewById(R.id.progressBar);
-		refreshSettings();
+		// restoreHandlerState(TEST_STATE);
+		reloadSettings();
 		refreshData();
+		backUpGameState();
 	}
 
 	/**
@@ -410,11 +431,22 @@ public class BriscolaActivity extends Activity implements AnalyzerListener {
 	}
 
 	/**
+	 * @see android.app.Activity#onDestroy()
+	 */
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		logger.debug("onDestroy");
+	}
+
+	/**
 	 * 
 	 */
 	private void onInitialDealEnd() {
+		logger.debug("onInitialDealEnd");
 		refreshData();
 		if (handler.isPlayerHand()) {
+			backUpGameState();
 			enableCardButtons();
 		} else {
 			startAnalysis();
@@ -425,8 +457,10 @@ public class BriscolaActivity extends Activity implements AnalyzerListener {
 	 * 
 	 */
 	private void onNextDealEnd() {
+		logger.debug("onNextDealEnd");
 		refreshData();
 		if (handler.isPlayerHand()) {
+			backUpGameState();
 			enableCardButtons();
 		} else {
 			startAnalysis();
@@ -455,17 +489,39 @@ public class BriscolaActivity extends Activity implements AnalyzerListener {
 	@Override
 	protected void onPause() {
 		super.onPause();
+		logger.debug("onPause");
 	}
 
 	/**
 	 * 
 	 */
 	private void onPlayerMoveEnd() {
+		logger.debug("onPlayerMoveEnd");
 		if (handler.isPlayerHand()) {
 			startAnalysis();
 		} else {
+			backUpGameState();
 			enableDeal(dealNextListener);
 		}
+	}
+
+	/**
+	 * @see android.app.Activity#onRestart()
+	 */
+	@Override
+	protected void onRestart() {
+		super.onRestart();
+		logger.debug("onRestart");
+	}
+
+	/**
+	 * @see android.app.Activity#onRestoreInstanceState(android.os.Bundle)
+	 */
+	@Override
+	protected void onRestoreInstanceState(Bundle savedInstanceState) {
+		super.onRestoreInstanceState(savedInstanceState);
+		logger.debug("onRestoreInstanceState");
+		restoreHandler(savedInstanceState);
 	}
 
 	/**
@@ -473,8 +529,38 @@ public class BriscolaActivity extends Activity implements AnalyzerListener {
 	 */
 	@Override
 	protected void onResume() {
-		refreshSettings();
 		super.onResume();
+		logger.debug("onResume");
+		reloadSettings();
+	}
+
+	/**
+	 * @see android.app.Activity#onSaveInstanceState(android.os.Bundle)
+	 */
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+		logger.debug("onSaveInstanceState");
+		if (gameStateBackUp != null)
+			outState.putString(GAME_HANDLER_KEY, gameStateBackUp);
+	}
+
+	/**
+	 * @see android.app.Activity#onStart()
+	 */
+	@Override
+	protected void onStart() {
+		super.onStart();
+		logger.debug("onStart");
+	}
+
+	/**
+	 * @see android.app.Activity#onStop()
+	 */
+	@Override
+	protected void onStop() {
+		super.onStop();
+		logger.debug("onStop");
 	}
 
 	/**
@@ -498,7 +584,127 @@ public class BriscolaActivity extends Activity implements AnalyzerListener {
 	/**
 	 * 
 	 */
-	private void refreshSettings() {
+	private void refreshViews() {
+		// Set deck cards view
+		int n = handler.getDeckCount();
+		if (n == 0) {
+			((ImageView) findViewById(R.id.trumpCard))
+					.setImageResource(R.drawable.empty);
+			((ImageView) findViewById(R.id.deck))
+					.setImageResource(R.drawable.empty);
+		} else {
+			// Set trump card view
+			Card card = handler.getTrump();
+			if (card == null) {
+				((ImageView) findViewById(R.id.trumpCard))
+						.setImageResource(R.drawable.empty);
+			} else {
+				int cardId = cardDrawableFactory.findResId(card);
+				((ImageView) findViewById(R.id.trumpCard))
+						.setImageResource(cardId);
+			}
+			((ImageView) findViewById(R.id.deck))
+					.setImageResource(R.drawable.deck);
+		}
+
+		// Set player card view
+		Card card = handler.getPlayerCard();
+		if (card == null) {
+			((ImageView) findViewById(R.id.playerCard))
+					.setImageResource(R.drawable.empty);
+		} else {
+			int cardId = cardDrawableFactory.findResId(card);
+			((ImageView) findViewById(R.id.playerCard))
+					.setImageResource(cardId);
+		}
+
+		// Set ai card view
+		card = handler.getAiCard();
+		if (card == null) {
+			((ImageView) findViewById(R.id.playerCard))
+					.setImageResource(R.drawable.empty);
+		} else {
+			int cardId = cardDrawableFactory.findResId(card);
+			((ImageView) findViewById(R.id.aiCard)).setImageResource(cardId);
+		}
+
+		// Set ai cards view
+		n = handler.getAiCardCount();
+		switch (n) {
+		case 0:
+			((ImageView) findViewById(R.id.aiCard1))
+					.setImageResource(R.drawable.empty);
+			((ImageView) findViewById(R.id.aiCard2))
+					.setImageResource(R.drawable.empty);
+			((ImageView) findViewById(R.id.aiCard3))
+					.setImageResource(R.drawable.empty);
+			break;
+		case 1:
+			((ImageView) findViewById(R.id.aiCard1))
+					.setImageResource(R.drawable.retro_rot);
+			((ImageView) findViewById(R.id.aiCard2))
+					.setImageResource(R.drawable.empty);
+			((ImageView) findViewById(R.id.aiCard3))
+					.setImageResource(R.drawable.empty);
+			break;
+		case 2:
+			((ImageView) findViewById(R.id.aiCard1))
+					.setImageResource(R.drawable.retro_rot);
+			((ImageView) findViewById(R.id.aiCard2))
+					.setImageResource(R.drawable.retro_rot);
+			((ImageView) findViewById(R.id.aiCard3))
+					.setImageResource(R.drawable.empty);
+			break;
+		default:
+			((ImageView) findViewById(R.id.aiCard1))
+					.setImageResource(R.drawable.retro_rot);
+			((ImageView) findViewById(R.id.aiCard2))
+					.setImageResource(R.drawable.retro_rot);
+			((ImageView) findViewById(R.id.aiCard3))
+					.setImageResource(R.drawable.retro_rot);
+			break;
+		}
+
+		// Set player cards view
+		cardResIdMap.clear();
+		List<Card> cards = handler.getPlayerCards();
+		n = cards.size();
+		if (n == 0) {
+			((ImageView) findViewById(R.id.playerCard1))
+					.setImageResource(R.drawable.empty);
+		} else {
+			card = cards.get(0);
+			int cardId = cardDrawableFactory.findResId(card);
+			((ImageView) findViewById(R.id.playerCard1))
+					.setImageResource(cardId);
+			cardResIdMap.put(card, R.id.playerCard1);
+		}
+		if (n <= 1) {
+			((ImageView) findViewById(R.id.playerCard2))
+					.setImageResource(R.drawable.empty);
+		} else {
+			card = cards.get(1);
+			int cardId = cardDrawableFactory.findResId(card);
+			((ImageView) findViewById(R.id.playerCard2))
+					.setImageResource(cardId);
+			cardResIdMap.put(card, R.id.playerCard2);
+		}
+		if (n <= 2) {
+			((ImageView) findViewById(R.id.playerCard3))
+					.setImageResource(R.drawable.empty);
+		} else {
+			card = cards.get(2);
+			int cardId = cardDrawableFactory.findResId(card);
+			((ImageView) findViewById(R.id.playerCard3))
+					.setImageResource(cardId);
+			cardResIdMap.put(card, R.id.playerCard3);
+		}
+	}
+
+	/**
+	 * 
+	 */
+	private void reloadSettings() {
 		SharedPreferences sharePrefs = PreferenceManager
 				.getDefaultSharedPreferences(this);
 		String value = sharePrefs.getString("think_time", "10");
@@ -508,6 +714,56 @@ public class BriscolaActivity extends Activity implements AnalyzerListener {
 		} catch (NumberFormatException e) {
 			logger.error("Invalid value", e);
 		}
+		boolean scoreVisible = sharePrefs.getBoolean("score_visible", true);
+		if (scoreVisible) {
+			findViewById(R.id.aiScore).setVisibility(View.VISIBLE);
+			findViewById(R.id.playerScore).setVisibility(View.VISIBLE);
+		} else {
+			findViewById(R.id.aiScore).setVisibility(View.INVISIBLE);
+			findViewById(R.id.playerScore).setVisibility(View.INVISIBLE);
+		}
+	}
+
+	/**
+	 * 
+	 * @param savedInstanceState
+	 */
+	private void restoreHandler(Bundle savedInstanceState) {
+		restoreHandlerState(savedInstanceState.getString(GAME_HANDLER_KEY));
+	}
+
+	/**
+	 * 
+	 */
+	private void restoreHandlerState() {
+		logger.debug("restoreHandler: {}", gameStateBackUp);
+		GameMemento memento = GameMemento.create(gameStateBackUp);
+		handler.applyMemento(memento);
+		reloadSettings();
+		refreshData();
+
+		disableButtons();
+		refreshViews();
+		switch (handler.getStatus()) {
+		case PLAYER_MOVE:
+			enableCardButtons();
+			break;
+		case CLOSE_HAND:
+			enableDeal(dealNextListener);
+			break;
+		default:
+			enableDeal(dealInitListener);
+			break;
+		}
+	}
+
+	/**
+	 * 
+	 * @param state
+	 */
+	void restoreHandlerState(String state) {
+		gameStateBackUp = state;
+		restoreHandlerState();
 	}
 
 	/**
@@ -519,16 +775,25 @@ public class BriscolaActivity extends Activity implements AnalyzerListener {
 	}
 
 	/**
-	 *
+	 * Start the analysis task
 	 */
 	private void startAnalysis() {
 		logger.debug("Analysing ...");
 		progressBar.setVisibility(View.VISIBLE);
-		new Thread() {
+		new AsyncTask<Void, Void, Void>() {
 			@Override
-			public void run() {
+			protected Void doInBackground(Void... params) {
 				analyze();
+				return null;
 			}
-		}.start();
+
+			/**
+			 * @see android.os.AsyncTask#onPostExecute(java.lang.Object)
+			 */
+			@Override
+			protected void onPostExecute(Void result) {
+				onAnalysisEnd();
+			}
+		}.execute();
 	}
 }

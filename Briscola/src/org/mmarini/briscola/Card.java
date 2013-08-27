@@ -42,6 +42,30 @@ public class Card {
 	}
 
 	/**
+	 * 
+	 * @param index
+	 * @return
+	 */
+	public static Card getCard(int index) {
+		return deck[index];
+	}
+
+	/**
+	 * 
+	 * @param card
+	 * @return
+	 */
+	public static int getCardIndex(Card card) {
+		int n = deck.length;
+		for (int i = 0; i < n; ++i) {
+			if (card.equals(deck[i])) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	/**
 	 * @return the deck
 	 */
 	public static Card[] getDeck() {
@@ -58,6 +82,7 @@ public class Card {
 	}
 
 	private Suit seed;
+
 	private Figure figure;
 
 	/**

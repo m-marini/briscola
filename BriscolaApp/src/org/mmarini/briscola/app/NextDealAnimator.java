@@ -126,6 +126,8 @@ public class NextDealAnimator extends AbstractDealAnimator {
 	 */
 	private Animation addTrumpToPlayer(int playerCardId, long startOffset) {
 		AnimationSet set = new AnimationSet(false);
+		int trumpId = cardDrawableFactory.findResId(getHandler().getTrump());
+		set.addAnimation(createChangeDrawable(playerCardId, trumpId, 10));
 		set.addAnimation(createTranslation(playerCardId, R.id.trumpCard,
 				playerCardId, 0));
 		set.addAnimation(createBringOnFront(playerCardId, 1));
