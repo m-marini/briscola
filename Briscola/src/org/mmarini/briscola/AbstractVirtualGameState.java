@@ -22,7 +22,7 @@ public abstract class AbstractVirtualGameState extends AbstractGameState {
 		return Math.min(Math.max((a - min) / (max - min), 0), 1);
 	}
 
-	private Card[] oppositeCards;
+	private Card[] playerCards;
 
 	/**
 	 * 
@@ -42,18 +42,18 @@ public abstract class AbstractVirtualGameState extends AbstractGameState {
 		 * in mano ai giocatori, le briscole in mano ai giocatori, i punti
 		 * rimasti in gioco e le carte briscole in gioco e la carta di briscola
 		 */
-		double playerScore = between(getPlayerScore(), 0, 61);
-		double oppositeScore = between(getOppositeScore(), 0, 61);
-		double playerTrumps = between(computeTrumpLevel(getPlayerCards()), 0,
+		double playerScore = between(getAiScore(), 0, 61);
+		double oppositeScore = between(getPlayerScore(), 0, 61);
+		double playerTrumps = between(computeTrumpLevel(getAiCards()), 0,
 				MAX_TRUMP_LEVEL) / 62;
-		double oppositeTrumps = between(computeTrumpLevel(getOppositeCards()),
-				0, MAX_TRUMP_LEVEL) / 62;
+		double oppositeTrumps = between(computeTrumpLevel(getPlayerCards()), 0,
+				MAX_TRUMP_LEVEL) / 62;
 
 		double win = more(playerScore, playerTrumps);
 		double loss = more(oppositeScore, oppositeTrumps);
 		estimation.setConfident(false);
-		estimation.setWin(win);
-		estimation.setLoss(loss);
+		estimation.setAiWinProb(win);
+		estimation.setPlayerWinProb(loss);
 	}
 
 	/**
@@ -84,15 +84,15 @@ public abstract class AbstractVirtualGameState extends AbstractGameState {
 	/**
 	 * @return the oppositeCards
 	 */
-	protected Card[] getOppositeCards() {
-		return oppositeCards;
+	protected Card[] getPlayerCards() {
+		return playerCards;
 	}
 
 	/**
 	 * @param oppositeCards
 	 *            the oppositeCards to set
 	 */
-	protected void setOppositeCards(Card... oppositeCards) {
-		this.oppositeCards = oppositeCards;
+	protected void setPlayerCards(Card... oppositeCards) {
+		this.playerCards = oppositeCards;
 	}
 }

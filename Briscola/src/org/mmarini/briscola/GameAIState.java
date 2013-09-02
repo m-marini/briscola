@@ -30,19 +30,19 @@ public class GameAIState extends AbstractGameState {
 	@Override
 	public void estimate(Estimation estimation, StrategySearchContext ctx)
 			throws InterruptedException {
-		Card[] playerCards = getPlayerCards();
+		Card[] aiCards = getAiCards();
 		estimation.setConfident(true);
-		estimation.setWin(0.);
-		estimation.setLoss(0.);
-		estimation.setBestCard(playerCards[0]);
-		int score = getPlayerScore();
-		if (score > HALF_SCORE) {
-			estimation.setWin(1.);
+		estimation.setAiWinProb(0.);
+		estimation.setPlayerWinProb(0.);
+		estimation.setBestCard(aiCards[0]);
+		int aiScore = getAiScore();
+		if (aiScore > HALF_SCORE) {
+			estimation.setAiWinProb(1.);
 			return;
 		}
-		int oppositeScore = getOppositeScore();
-		if (oppositeScore > HALF_SCORE) {
-			estimation.setLoss(1.);
+		int playerScore = getPlayerScore();
+		if (playerScore > HALF_SCORE) {
+			estimation.setPlayerWinProb(1.);
 			return;
 		}
 		/*
@@ -52,35 +52,35 @@ public class GameAIState extends AbstractGameState {
 		 */
 		Card[] deckCards = getDeckCards();
 		int n = deckCards.length;
-		Card[] oppositeCards = new Card[3];
+		Card[] playerCards = new Card[3];
 		VirtualAIStartState state = new VirtualAIStartState();
 		state.setTrump(getTrump());
-		state.setOppositeCards(oppositeCards);
-		state.setOppositeScore(getOppositeScore());
 		state.setPlayerCards(playerCards);
 		state.setPlayerScore(getPlayerScore());
+		state.setAiCards(aiCards);
+		state.setAiScore(getAiScore());
 		double[] wins = new double[3];
 		double[] losses = new double[3];
 		boolean[] confidents = new boolean[3];
 		Arrays.fill(confidents, true);
 		double prob = 1. / n / (n - 1) / (n - 2);
 		for (int i = 0; i < n - 2; ++i) {
-			oppositeCards[0] = deckCards[i];
+			playerCards[0] = deckCards[i];
 			for (int j = i + 1; j < n - 1; ++j) {
-				oppositeCards[1] = deckCards[j];
+				playerCards[1] = deckCards[j];
 				for (int k = j + 1; k < n; ++k) {
-					oppositeCards[2] = deckCards[k];
-					state.setDeckCards(createAndRemove(deckCards, oppositeCards));
+					playerCards[2] = deckCards[k];
+					state.setDeckCards(createAndRemove(deckCards, playerCards));
 					state.estimate(estimation, ctx);
 					Card bestCard = estimation.getBestCard();
 					int idx = 0;
-					for (Card c : playerCards) {
+					for (Card c : aiCards) {
 						if (c.equals(bestCard))
 							break;
 						++idx;
 					}
-					wins[idx] += estimation.getWin() * prob;
-					losses[idx] += estimation.getLoss() * prob;
+					wins[idx] += estimation.getAiWinProb() * prob;
+					losses[idx] += estimation.getPlayerWinProb() * prob;
 					confidents[idx] &= estimation.isConfident();
 				}
 			}
@@ -92,7 +92,7 @@ public class GameAIState extends AbstractGameState {
 		double win = Double.NEGATIVE_INFINITY;
 		for (int i = 0; i < 3; ++i) {
 			if (wins[i] > win || (wins[i] == win && losses[i] < loss)) {
-				bestCard = playerCards[i];
+				bestCard = aiCards[i];
 				loss = losses[i];
 				win = wins[i];
 				confident = confidents[i];
@@ -101,7 +101,7 @@ public class GameAIState extends AbstractGameState {
 
 		estimation.setBestCard(bestCard);
 		estimation.setConfident(confident);
-		estimation.setLoss(loss);
-		estimation.setWin(win);
+		estimation.setPlayerWinProb(loss);
+		estimation.setAiWinProb(win);
 	}
 }

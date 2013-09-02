@@ -31,7 +31,7 @@ public class FinalOppositeMidStateTest {
 	private static final Card ASSO_COPPE = Card.getCard(Figure.ACE, Suit.CUPS);
 	private static final Card RE_COPPE = Card.getCard(Figure.KING, Suit.CUPS);
 	private TimerSearchContext ctx;
-	private FinalOppositeMidState state;
+	private FinalPlayerMidState state;
 	private Estimation estimation;
 
 	/**
@@ -42,7 +42,7 @@ public class FinalOppositeMidStateTest {
 		ctx = new TimerSearchContext();
 		ctx.setTimeout(1000000);
 		estimation = new Estimation();
-		state = new FinalOppositeMidState();
+		state = new FinalPlayerMidState();
 		state.setDeckCards();
 		state.setTrump(BRISCOLA);
 	}
@@ -56,16 +56,16 @@ public class FinalOppositeMidStateTest {
 	 */
 	@Test
 	public void testEstimate1() throws InterruptedException {
-		state.setPlayerScore(44);
-		state.setOppositeScore(40);
-		state.setPlayerCards(RE_DENARI, ASSO_DENARI);
-		state.setOppositeCards(TRE_DENARI);
-		state.setOppositeCard(CAVALLO_DENARI);
+		state.setAiScore(44);
+		state.setPlayerScore(40);
+		state.setAiCards(RE_DENARI, ASSO_DENARI);
+		state.setPlayerCards(TRE_DENARI);
+		state.setPlayerCard(CAVALLO_DENARI);
 		ctx.estimate(estimation, state);
 
 		assertEquals(RE_DENARI, estimation.getBestCard());
-		assertEquals(1., estimation.getWin(), EPSILON);
-		assertEquals(0., estimation.getLoss(), EPSILON);
+		assertEquals(1., estimation.getAiWinProb(), EPSILON);
+		assertEquals(0., estimation.getPlayerWinProb(), EPSILON);
 	}
 
 	/**
@@ -77,16 +77,16 @@ public class FinalOppositeMidStateTest {
 	 */
 	@Test
 	public void testEstimate1i() throws InterruptedException {
-		state.setPlayerScore(44);
-		state.setOppositeScore(40);
-		state.setPlayerCards(ASSO_DENARI, RE_DENARI);
-		state.setOppositeCards(TRE_DENARI);
-		state.setOppositeCard(CAVALLO_DENARI);
+		state.setAiScore(44);
+		state.setPlayerScore(40);
+		state.setAiCards(ASSO_DENARI, RE_DENARI);
+		state.setPlayerCards(TRE_DENARI);
+		state.setPlayerCard(CAVALLO_DENARI);
 		ctx.estimate(estimation, state);
 
 		assertEquals(RE_DENARI, estimation.getBestCard());
-		assertEquals(1., estimation.getWin(), EPSILON);
-		assertEquals(0., estimation.getLoss(), EPSILON);
+		assertEquals(1., estimation.getAiWinProb(), EPSILON);
+		assertEquals(0., estimation.getPlayerWinProb(), EPSILON);
 	}
 
 	/**
@@ -98,16 +98,16 @@ public class FinalOppositeMidStateTest {
 	 */
 	@Test
 	public void testEstimate2_1() throws InterruptedException {
-		state.setPlayerScore(61 - 57);
-		state.setOppositeScore(59);
-		state.setPlayerCards(ASSO_SPADE, ASSO_DENARI, TRE_COPPE);
-		state.setOppositeCards(TRE_DENARI, ASSO_COPPE);
-		state.setOppositeCard(RE_COPPE);
+		state.setAiScore(61 - 57);
+		state.setPlayerScore(59);
+		state.setAiCards(ASSO_SPADE, ASSO_DENARI, TRE_COPPE);
+		state.setPlayerCards(TRE_DENARI, ASSO_COPPE);
+		state.setPlayerCard(RE_COPPE);
 		ctx.estimate(estimation, state);
 
 		assertEquals(TRE_COPPE, estimation.getBestCard());
-		assertEquals(1., estimation.getWin(), EPSILON);
-		assertEquals(0., estimation.getLoss(), EPSILON);
+		assertEquals(1., estimation.getAiWinProb(), EPSILON);
+		assertEquals(0., estimation.getPlayerWinProb(), EPSILON);
 	}
 
 	/**
@@ -119,16 +119,16 @@ public class FinalOppositeMidStateTest {
 	 */
 	@Test
 	public void testEstimate2_2() throws InterruptedException {
-		state.setPlayerScore(61 - 57);
-		state.setOppositeScore(59);
-		state.setPlayerCards(ASSO_DENARI, ASSO_SPADE, TRE_COPPE);
-		state.setOppositeCards(TRE_DENARI, ASSO_COPPE);
-		state.setOppositeCard(RE_COPPE);
+		state.setAiScore(61 - 57);
+		state.setPlayerScore(59);
+		state.setAiCards(ASSO_DENARI, ASSO_SPADE, TRE_COPPE);
+		state.setPlayerCards(TRE_DENARI, ASSO_COPPE);
+		state.setPlayerCard(RE_COPPE);
 		ctx.estimate(estimation, state);
 
 		assertEquals(TRE_COPPE, estimation.getBestCard());
-		assertEquals(1., estimation.getWin(), EPSILON);
-		assertEquals(0., estimation.getLoss(), EPSILON);
+		assertEquals(1., estimation.getAiWinProb(), EPSILON);
+		assertEquals(0., estimation.getPlayerWinProb(), EPSILON);
 	}
 
 	/**
@@ -140,16 +140,16 @@ public class FinalOppositeMidStateTest {
 	 */
 	@Test
 	public void testEstimate2_3() throws InterruptedException {
-		state.setPlayerScore(61 - 57);
-		state.setOppositeScore(59);
-		state.setPlayerCards(ASSO_DENARI, TRE_COPPE, ASSO_SPADE);
-		state.setOppositeCards(TRE_DENARI, ASSO_COPPE);
-		state.setOppositeCard(RE_COPPE);
+		state.setAiScore(61 - 57);
+		state.setPlayerScore(59);
+		state.setAiCards(ASSO_DENARI, TRE_COPPE, ASSO_SPADE);
+		state.setPlayerCards(TRE_DENARI, ASSO_COPPE);
+		state.setPlayerCard(RE_COPPE);
 		ctx.estimate(estimation, state);
 
 		assertEquals(TRE_COPPE, estimation.getBestCard());
-		assertEquals(1., estimation.getWin(), EPSILON);
-		assertEquals(0., estimation.getLoss(), EPSILON);
+		assertEquals(1., estimation.getAiWinProb(), EPSILON);
+		assertEquals(0., estimation.getPlayerWinProb(), EPSILON);
 	}
 
 }

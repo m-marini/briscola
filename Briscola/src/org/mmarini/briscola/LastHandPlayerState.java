@@ -13,12 +13,12 @@ package org.mmarini.briscola;
  * @author US00852
  * 
  */
-public class LastHandOppositeState extends AbstractVirtualGameState {
+public class LastHandPlayerState extends AbstractVirtualGameState {
 
 	/**
 	 * 
 	 */
-	public LastHandOppositeState() {
+	public LastHandPlayerState() {
 	}
 
 	/**
@@ -30,19 +30,19 @@ public class LastHandOppositeState extends AbstractVirtualGameState {
 			StrategySearchContext strategySearchContext)
 			throws InterruptedException {
 		int score = getPlayerScore();
-		Card card = getPlayerCards()[0];
-		Card opposite = getOppositeCards()[0];
-		if (!opposite.wins(card, getTrump())) {
-			score += computeScore(card, opposite);
+		Card aiCard = getPlayerCards()[0];
+		Card playerCard = getPlayerCards()[0];
+		if (!playerCard.wins(aiCard, getTrump())) {
+			score += computeScore(aiCard, playerCard);
 		}
-		estimation.setBestCard(card);
+		estimation.setBestCard(aiCard);
 		estimation.setConfident(true);
-		estimation.setWin(0.);
-		estimation.setLoss(0.);
+		estimation.setAiWinProb(0.);
+		estimation.setPlayerWinProb(0.);
 		if (score > HALF_SCORE) {
-			estimation.setWin(1.);
+			estimation.setAiWinProb(1.);
 		} else if (score < HALF_SCORE) {
-			estimation.setLoss(1.);
+			estimation.setPlayerWinProb(1.);
 		}
 	}
 }

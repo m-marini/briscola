@@ -28,32 +28,32 @@ public class VirtualAIStartState extends AbstractVirtualGameState {
 
 	/**
 	 * 
-	 * @param card
-	 * @param opposite
+	 * @param aiCard
+	 * @param playerCard
 	 * @return
 	 */
-	private AbstractVirtualGameState createState(Card card, Card opposite) {
-		Card[] playerCards = createAndRemove(getPlayerCards(), card);
-		Card[] oppositeCards = createAndRemove(getOppositeCards(), opposite);
+	private AbstractVirtualGameState createState(Card aiCard, Card playerCard) {
+		Card[] aiCards = createAndRemove(getAiCards(), aiCard);
+		Card[] playerCards = createAndRemove(getPlayerCards(), playerCard);
 		Card trump = getTrump();
-		boolean winner = card.wins(opposite, trump);
-		int score = computeScore(card, opposite);
+		boolean aiWinner = aiCard.wins(playerCard, trump);
+		int score = computeScore(aiCard, playerCard);
+		int aiScore = getAiScore();
 		int playerScore = getPlayerScore();
-		int oppositeScore = getOppositeScore();
 		AbstractVirtualGameState state = null;
-		if (winner) {
-			playerScore += score;
+		if (aiWinner) {
+			aiScore += score;
 			state = new VirtualAIEndState();
 		} else {
-			oppositeScore += score;
-			state = new VirtualOppositeEndState();
+			playerScore += score;
+			state = new VirtualPlayerEndState();
 		}
 		state.setTrump(trump);
 		state.setDeckCards(getDeckCards());
+		state.setAiCards(aiCards);
+		state.setAiScore(aiScore);
 		state.setPlayerCards(playerCards);
 		state.setPlayerScore(playerScore);
-		state.setOppositeCards(oppositeCards);
-		state.setOppositeScore(oppositeScore);
 		return state;
 	}
 
@@ -65,16 +65,16 @@ public class VirtualAIStartState extends AbstractVirtualGameState {
 	public void estimate(Estimation estimation, StrategySearchContext ctx)
 			throws InterruptedException {
 		estimation.setConfident(true);
-		estimation.setWin(0.);
-		estimation.setLoss(0.);
-		int score = getPlayerScore();
-		if (score > HALF_SCORE) {
-			estimation.setWin(1.);
+		estimation.setAiWinProb(0.);
+		estimation.setPlayerWinProb(0.);
+		int aiScore = getAiScore();
+		if (aiScore > HALF_SCORE) {
+			estimation.setAiWinProb(1.);
 			return;
 		}
-		int oppositeScore = getOppositeScore();
-		if (oppositeScore > HALF_SCORE) {
-			estimation.setLoss(1.);
+		int playerScore = getPlayerScore();
+		if (playerScore > HALF_SCORE) {
+			estimation.setPlayerWinProb(1.);
 			return;
 		}
 		/*
@@ -86,35 +86,35 @@ public class VirtualAIStartState extends AbstractVirtualGameState {
 		double lpp = 0;
 		Card bestCard = null;
 		Card opBest = null;
-		for (Card card : getPlayerCards()) {
+		for (Card aiCard : getAiCards()) {
 			double wop = 0;
 			double lop = Double.NEGATIVE_INFINITY;
-			boolean oppositeConfident = false;
+			boolean playerConfident = false;
 			Card best = null;
-			for (Card opposite : getOppositeCards()) {
-				AbstractVirtualGameState state = createState(card, opposite);
+			for (Card playerCard : getPlayerCards()) {
+				AbstractVirtualGameState state = createState(aiCard, playerCard);
 				state.estimate(estimation, ctx);
-				double pl = estimation.getLoss();
-				double pw = estimation.getWin();
+				double pl = estimation.getPlayerWinProb();
+				double pw = estimation.getAiWinProb();
 				if (pl > lop || (pl == lop && pw < wop)) {
 					lop = pl;
 					wop = pw;
-					oppositeConfident = estimation.isConfident();
-					best = opposite;
+					playerConfident = estimation.isConfident();
+					best = playerCard;
 				}
 			}
 			if (wop > wpp || (wop == wpp && lop < lpp)) {
 				wpp = wop;
 				lpp = lop;
-				confident = oppositeConfident;
-				bestCard = card;
+				confident = playerConfident;
+				bestCard = aiCard;
 				opBest = best;
 			}
 		}
 		estimation.setBestCard(bestCard);
 		estimation.setConfident(confident);
-		estimation.setLoss(lpp);
-		estimation.setWin(wpp);
+		estimation.setPlayerWinProb(lpp);
+		estimation.setAiWinProb(wpp);
 		logger.debug("{} vs {} = {}", bestCard, opBest, estimation);
 	}
 }

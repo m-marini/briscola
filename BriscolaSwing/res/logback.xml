@@ -10,15 +10,15 @@
   <appender name="TRACER" class="ch.qos.logback.core.rolling.RollingFileAppender"> 
     <!-- encoders are assigned the type 
          ch.qos.logback.classic.encoder.PatternLayoutEncoder by default --> 
-    <file>briscola.trace</file>
+    <file>tracer.log</file>
     <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy"> 
       <!-- daily rollover --> 
-      <fileNamePattern>briscola.%d{yyyy-MM-dd}.trace</fileNamePattern> 
+      <fileNamePattern>tracer.%d{yyyy-MM-dd}.log</fileNamePattern> 
       <!-- keep 31 days' worth of history --> 
       <maxHistory>31</maxHistory> 
     </rollingPolicy> 
     <encoder> 
-      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern> 
+      <pattern>%d{HH:mm:ss.SSS} %-5level %logger{36} - %msg%n</pattern> 
     </encoder> 
   </appender> 
   <!--

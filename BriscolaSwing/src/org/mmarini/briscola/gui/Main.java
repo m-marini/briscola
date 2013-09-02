@@ -28,6 +28,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
+import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
@@ -98,8 +99,8 @@ public class Main extends JFrame implements AnalyzerListener {
 		playerWonGame = new JFormattedTextField(
 				NumberFormat.getIntegerInstance());
 		aiWonGame = new JFormattedTextField(NumberFormat.getIntegerInstance());
-		aiWinProb = new JFormattedTextField(NumberFormat.getPercentInstance());
-		aiLossProb = new JFormattedTextField(NumberFormat.getPercentInstance());
+		aiWinProb = new JFormattedTextField(NumberFormat.getNumberInstance());
+		aiLossProb = new JFormattedTextField(NumberFormat.getNumberInstance());
 		thinkLevel = new JFormattedTextField(NumberFormat.getIntegerInstance());
 		progressBar = new JProgressBar();
 		confident = new JCheckBox();
@@ -162,7 +163,7 @@ public class Main extends JFrame implements AnalyzerListener {
 		handler.setTimeout(30000);
 
 		setTitle("Briscola");
-		setSize(800, 600);
+		setSize(700, 700);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		setVisible(true);
@@ -385,22 +386,11 @@ public class Main extends JFrame implements AnalyzerListener {
 		p2.setBorder(BorderFactory.createEtchedBorder());
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.anchor = GridBagConstraints.WEST;
-		gbc.weighty = 1;
 		gbc.insets = new Insets(2, 2, 2, 2);
 
-		JLabel comp = new JLabel("Partite vinte");
+		JComponent comp = new JLabel("Partite perse");
 		gbc.gridwidth = 1;
-		gbc.fill = GridBagConstraints.NONE;
-		gbl.setConstraints(comp, gbc);
-		p2.add(comp);
-
-		gbc.gridwidth = GridBagConstraints.REMAINDER;
-		gbc.fill = GridBagConstraints.HORIZONTAL;
-		gbl.setConstraints(playerWonGame, gbc);
-		p2.add(playerWonGame);
-
-		comp = new JLabel("Partite perse");
-		gbc.gridwidth = 1;
+		gbc.weighty = 0;
 		gbc.fill = GridBagConstraints.NONE;
 		gbl.setConstraints(comp, gbc);
 		p2.add(comp);
@@ -409,17 +399,6 @@ public class Main extends JFrame implements AnalyzerListener {
 		gbc.fill = GridBagConstraints.HORIZONTAL;
 		gbl.setConstraints(aiWonGame, gbc);
 		p2.add(aiWonGame);
-
-		comp = new JLabel("Punti giocatore");
-		gbc.gridwidth = 1;
-		gbc.fill = GridBagConstraints.NONE;
-		gbl.setConstraints(comp, gbc);
-		p2.add(comp);
-
-		gbc.gridwidth = GridBagConstraints.REMAINDER;
-		gbc.fill = GridBagConstraints.HORIZONTAL;
-		gbl.setConstraints(playerScore, gbc);
-		p2.add(playerScore);
 
 		comp = new JLabel("Punti avversario");
 		gbc.gridwidth = 1;
@@ -432,8 +411,16 @@ public class Main extends JFrame implements AnalyzerListener {
 		gbl.setConstraints(aiScore, gbc);
 		p2.add(aiScore);
 
+		comp = new JSeparator();
+		gbc.gridwidth = GridBagConstraints.REMAINDER;
+		gbc.weighty = 1;
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		gbl.setConstraints(comp, gbc);
+		p2.add(comp);
+
 		comp = new JLabel("Carte nel mazzo");
 		gbc.gridwidth = 1;
+		gbc.weighty = 0;
 		gbc.fill = GridBagConstraints.NONE;
 		gbl.setConstraints(comp, gbc);
 		p2.add(comp);
@@ -443,7 +430,15 @@ public class Main extends JFrame implements AnalyzerListener {
 		gbl.setConstraints(deckCount, gbc);
 		p2.add(deckCount);
 
+		comp = new JSeparator();
 		gbc.gridwidth = GridBagConstraints.REMAINDER;
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		gbc.weighty = 1;
+		gbl.setConstraints(comp, gbc);
+		p2.add(comp);
+
+		gbc.gridwidth = GridBagConstraints.REMAINDER;
+		gbc.weighty = 0;
 		gbc.fill = GridBagConstraints.NONE;
 		gbl.setConstraints(confident, gbc);
 		p2.add(confident);
@@ -480,6 +475,36 @@ public class Main extends JFrame implements AnalyzerListener {
 		gbc.fill = GridBagConstraints.HORIZONTAL;
 		gbl.setConstraints(aiWinProb, gbc);
 		p2.add(aiWinProb);
+
+		comp = new JSeparator();
+		gbc.gridwidth = GridBagConstraints.REMAINDER;
+		gbc.weighty = 1;
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		gbl.setConstraints(comp, gbc);
+		p2.add(comp);
+
+		comp = new JLabel("Partite vinte");
+		gbc.weighty = 0;
+		gbc.gridwidth = 1;
+		gbc.fill = GridBagConstraints.NONE;
+		gbl.setConstraints(comp, gbc);
+		p2.add(comp);
+
+		gbc.gridwidth = GridBagConstraints.REMAINDER;
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		gbl.setConstraints(playerWonGame, gbc);
+		p2.add(playerWonGame);
+
+		comp = new JLabel("Punti giocatore");
+		gbc.gridwidth = 1;
+		gbc.fill = GridBagConstraints.NONE;
+		gbl.setConstraints(comp, gbc);
+		p2.add(comp);
+
+		gbc.gridwidth = GridBagConstraints.REMAINDER;
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		gbl.setConstraints(playerScore, gbc);
+		p2.add(playerScore);
 
 		gbc.gridwidth = GridBagConstraints.REMAINDER;
 		gbc.fill = GridBagConstraints.NONE;
@@ -547,11 +572,11 @@ public class Main extends JFrame implements AnalyzerListener {
 		int level = handler.getLevel();
 		Card card = handler.getBestCard();
 		logger.debug(
-				"notifyAnalysis: level={}, aiWin={}%, aiLoss={}%, confident={}, card={}",
-				level, winProb * 100, lossProb * 100, handlerConfident, card);
+				"notifyAnalysis: level={}, aiWin={}, aiLoss={}, confident={}, card={}",
+				level, winProb * 61, lossProb * 61, handlerConfident, card);
 		confident.setSelected(handlerConfident);
-		aiWinProb.setValue(winProb);
-		aiLossProb.setValue(lossProb);
+		aiWinProb.setValue(winProb * 61);
+		aiLossProb.setValue(lossProb * 61);
 		thinkLevel.setValue(level);
 	}
 
@@ -637,8 +662,8 @@ public class Main extends JFrame implements AnalyzerListener {
 		applyText(playerCard, handler.getPlayerCard());
 		applyText(aiCard, handler.getAiCard());
 
-		aiWinProb.setValue(handler.getAiWinProbability());
-		aiLossProb.setValue(handler.getAiLossProbability());
+		aiWinProb.setValue(handler.getAiWinProbability() * 61);
+		aiLossProb.setValue(handler.getAiLossProbability() * 61);
 		confident.setSelected(handler.isConfident());
 		thinkLevel.setValue(handler.getLevel());
 

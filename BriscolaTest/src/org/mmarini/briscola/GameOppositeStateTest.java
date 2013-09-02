@@ -19,13 +19,13 @@ public class GameOppositeStateTest {
 			Suit.CLUBS);
 	private static final Card RE_DENARI = Card.getCard(Figure.KING, Suit.COINS);
 
-	private GameOppositeState state;
+	private GamePlayerState state;
 	private TimerSearchContext ctx;
 	private Estimation estimation;
 
 	@Before
 	public void setUp() throws Exception {
-		state = new GameOppositeState();
+		state = new GamePlayerState();
 		state.setTrump(DUE_SPADE);
 		estimation = new Estimation();
 		ctx = new TimerSearchContext();
@@ -37,17 +37,17 @@ public class GameOppositeStateTest {
 		Card[] deckCards = AbstractGameState.createAndRemove(Card.getDeck(),
 				ASSO_DENARI, DUE_COPPE, TRE_BASTONI);
 		state.setDeckCards(deckCards);
-		state.setOppositeCard(RE_DENARI);
-		state.setPlayerCards(DUE_COPPE, ASSO_DENARI, TRE_BASTONI);
+		state.setPlayerCard(RE_DENARI);
+		state.setAiCards(DUE_COPPE, ASSO_DENARI, TRE_BASTONI);
+		state.setAiScore(0);
 		state.setPlayerScore(0);
-		state.setOppositeScore(0);
 		ctx.setMaxDeep(0);
 		ctx.estimate(estimation, state);
 
 		assertEquals(ASSO_DENARI, estimation.getBestCard());
 		assertFalse(estimation.isConfident());
-		assertEquals(3.33e-3, estimation.getWin(), EPSILON);
-		assertEquals(19e-6, estimation.getLoss(), EPSILON);
+		assertEquals(3.33e-3, estimation.getAiWinProb(), EPSILON);
+		assertEquals(19e-6, estimation.getPlayerWinProb(), EPSILON);
 	}
 
 }

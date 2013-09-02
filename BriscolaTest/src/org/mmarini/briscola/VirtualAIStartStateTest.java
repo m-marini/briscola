@@ -43,17 +43,17 @@ public class VirtualAIStartStateTest {
 				ASSO_DENARI, DUE_COPPE, TRE_BASTONI, ASSO_BASTONI, TRE_COPPE,
 				QUATTRO_SPADE);
 		state.setDeckCards(deckCards);
-		state.setPlayerCards(ASSO_DENARI, DUE_COPPE, TRE_BASTONI);
-		state.setOppositeCards(ASSO_BASTONI, TRE_COPPE, QUATTRO_SPADE);
+		state.setAiCards(ASSO_DENARI, DUE_COPPE, TRE_BASTONI);
+		state.setPlayerCards(ASSO_BASTONI, TRE_COPPE, QUATTRO_SPADE);
+		state.setAiScore(0);
 		state.setPlayerScore(0);
-		state.setOppositeScore(0);
 		ctx.setMaxDeep(0);
 		ctx.estimate(estimation, state);
 
 		assertEquals(DUE_COPPE, estimation.getBestCard());
 		assertFalse(estimation.isConfident());
-		assertEquals(0, estimation.getWin(), EPSILON);
-		assertEquals(10. / 61., estimation.getLoss(), EPSILON);
+		assertEquals(0, estimation.getAiWinProb(), EPSILON);
+		assertEquals(10. / 61., estimation.getPlayerWinProb(), EPSILON);
 	}
 
 	@Test
@@ -62,17 +62,17 @@ public class VirtualAIStartStateTest {
 				ASSO_DENARI, DUE_COPPE, TRE_BASTONI, ASSO_BASTONI, TRE_COPPE,
 				QUATTRO_SPADE);
 		state.setDeckCards(deckCards);
-		state.setPlayerCards(ASSO_DENARI, DUE_COPPE, TRE_BASTONI);
-		state.setOppositeCards(ASSO_BASTONI, TRE_COPPE, QUATTRO_SPADE);
+		state.setAiCards(ASSO_DENARI, DUE_COPPE, TRE_BASTONI);
+		state.setPlayerCards(ASSO_BASTONI, TRE_COPPE, QUATTRO_SPADE);
+		state.setAiScore(0);
 		state.setPlayerScore(0);
-		state.setOppositeScore(0);
 		ctx.setMaxDeep(1);
 		ctx.estimate(estimation, state);
 
 		assertEquals(ASSO_DENARI, estimation.getBestCard());
 		assertFalse(estimation.isConfident());
-		assertEquals(10. / 61., estimation.getWin(), EPSILON);
-		assertEquals(10. / 61., estimation.getLoss(), EPSILON);
+		assertEquals(10. / 61., estimation.getAiWinProb(), EPSILON);
+		assertEquals(10. / 61., estimation.getPlayerWinProb(), EPSILON);
 	}
 
 }

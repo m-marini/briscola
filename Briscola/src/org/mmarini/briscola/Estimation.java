@@ -8,8 +8,8 @@ package org.mmarini.briscola;
  * 
  */
 public class Estimation {
-	private double win;
-	private double loss;
+	private double aiWinProb;
+	private double playerWinProb;
 	private boolean confident;
 	private Card bestCard;
 
@@ -29,15 +29,15 @@ public class Estimation {
 	/**
 	 * @return the loss probability
 	 */
-	public double getLoss() {
-		return loss;
+	public double getPlayerWinProb() {
+		return playerWinProb;
 	}
 
 	/**
 	 * @return the win probability
 	 */
-	public double getWin() {
-		return win;
+	public double getAiWinProb() {
+		return aiWinProb;
 	}
 
 	/**
@@ -67,16 +67,16 @@ public class Estimation {
 	 * @param lossProbability
 	 *            the loss probability to set
 	 */
-	public void setLoss(double lossProbability) {
-		this.loss = lossProbability;
+	public void setPlayerWinProb(double lossProbability) {
+		this.playerWinProb = lossProbability;
 	}
 
 	/**
 	 * @param probability
 	 *            the win probability to set
 	 */
-	public void setWin(double probability) {
-		this.win = probability;
+	public void setAiWinProb(double probability) {
+		this.aiWinProb = probability;
 	}
 
 	/**
@@ -86,8 +86,9 @@ public class Estimation {
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
 		builder.append("Estimation [confident=").append(confident)
-				.append(", win=").append(win).append(", loss=").append(loss)
-				.append(", bestCard=").append(bestCard).append("]");
+				.append(", win=").append(aiWinProb).append(", loss=")
+				.append(playerWinProb).append(", bestCard=").append(bestCard)
+				.append("]");
 		return builder.toString();
 	}
 

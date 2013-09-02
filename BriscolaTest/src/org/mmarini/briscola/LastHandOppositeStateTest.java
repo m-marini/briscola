@@ -25,7 +25,7 @@ public class LastHandOppositeStateTest {
 			Suit.COINS);;
 	private static final double EPSILON = 1e-10;
 	private TimerSearchContext ctx;
-	private LastHandOppositeState state;
+	private LastHandPlayerState state;
 	private Estimation estimation;
 
 	/**
@@ -37,7 +37,7 @@ public class LastHandOppositeStateTest {
 		ctx.setMaxDeep(0);
 		ctx.setTimeout(100000000);
 		estimation = new Estimation();
-		state = new LastHandOppositeState();
+		state = new LastHandPlayerState();
 		state.setDeckCards();
 		state.setTrump(DUE_DENARI);
 	}
@@ -51,15 +51,15 @@ public class LastHandOppositeStateTest {
 	 */
 	@Test
 	public void testEstimateDraw1() throws InterruptedException {
-		state.setOppositeScore(60);
 		state.setPlayerScore(60);
-		state.setOppositeCards(QUATTRO_COPPE);
-		state.setPlayerCards(DUE_COPPE);
+		state.setAiScore(60);
+		state.setPlayerCards(QUATTRO_COPPE);
+		state.setAiCards(DUE_COPPE);
 
 		ctx.estimate(estimation, state);
 		assertTrue(estimation.isConfident());
-		assertEquals(0., estimation.getWin(), EPSILON);
-		assertEquals(0., estimation.getLoss(), EPSILON);
+		assertEquals(0., estimation.getAiWinProb(), EPSILON);
+		assertEquals(0., estimation.getPlayerWinProb(), EPSILON);
 	}
 
 	/**
@@ -71,15 +71,15 @@ public class LastHandOppositeStateTest {
 	 */
 	@Test
 	public void testEstimateDraw2() throws InterruptedException {
-		state.setOppositeScore(60);
 		state.setPlayerScore(60);
-		state.setPlayerCards(QUATTRO_COPPE);
-		state.setOppositeCards(DUE_COPPE);
+		state.setAiScore(60);
+		state.setAiCards(QUATTRO_COPPE);
+		state.setPlayerCards(DUE_COPPE);
 
 		ctx.estimate(estimation, state);
 		assertTrue(estimation.isConfident());
-		assertEquals(0., estimation.getWin(), EPSILON);
-		assertEquals(0., estimation.getLoss(), EPSILON);
+		assertEquals(0., estimation.getAiWinProb(), EPSILON);
+		assertEquals(0., estimation.getPlayerWinProb(), EPSILON);
 	}
 
 	/**
@@ -91,15 +91,15 @@ public class LastHandOppositeStateTest {
 	 */
 	@Test
 	public void testEstimateLoss() throws InterruptedException {
-		state.setOppositeScore(59);
 		state.setPlayerScore(59);
-		state.setOppositeCards(FANTE_DENARI);
-		state.setPlayerCards(DUE_COPPE);
+		state.setAiScore(59);
+		state.setPlayerCards(FANTE_DENARI);
+		state.setAiCards(DUE_COPPE);
 
 		ctx.estimate(estimation, state);
 		assertTrue(estimation.isConfident());
-		assertEquals(0., estimation.getWin(), EPSILON);
-		assertEquals(1., estimation.getLoss(), EPSILON);
+		assertEquals(0., estimation.getAiWinProb(), EPSILON);
+		assertEquals(1., estimation.getPlayerWinProb(), EPSILON);
 	}
 
 	/**
@@ -111,14 +111,14 @@ public class LastHandOppositeStateTest {
 	 */
 	@Test
 	public void testEstimateWin() throws InterruptedException {
-		state.setOppositeScore(59);
 		state.setPlayerScore(59);
-		state.setPlayerCards(FANTE_DENARI);
-		state.setOppositeCards(DUE_COPPE);
+		state.setAiScore(59);
+		state.setAiCards(FANTE_DENARI);
+		state.setPlayerCards(DUE_COPPE);
 
 		ctx.estimate(estimation, state);
 		assertTrue(estimation.isConfident());
-		assertEquals(1., estimation.getWin(), EPSILON);
-		assertEquals(0., estimation.getLoss(), EPSILON);
+		assertEquals(1., estimation.getAiWinProb(), EPSILON);
+		assertEquals(0., estimation.getPlayerWinProb(), EPSILON);
 	}
 }

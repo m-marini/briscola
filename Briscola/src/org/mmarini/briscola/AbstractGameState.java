@@ -68,14 +68,11 @@ public abstract class AbstractGameState implements Cloneable {
 		return result;
 	}
 
-	private Card[] playerCards;
+	private Card[] aiCards;
 	private Card trump;
-
 	private Card[] deckCards;
-
+	private int aiScore;
 	private int playerScore;
-
-	private int oppositeScore;
 
 	/**
 	 * 
@@ -113,22 +110,22 @@ public abstract class AbstractGameState implements Cloneable {
 	/**
 	 * @return the oppositeScore
 	 */
-	public int getOppositeScore() {
-		return oppositeScore;
+	public int getPlayerScore() {
+		return playerScore;
 	}
 
 	/**
 	 * @return the playerCards
 	 */
-	protected Card[] getPlayerCards() {
-		return playerCards;
+	protected Card[] getAiCards() {
+		return aiCards;
 	}
 
 	/**
 	 * @return the playerScore
 	 */
-	public int getPlayerScore() {
-		return playerScore;
+	public int getAiScore() {
+		return aiScore;
 	}
 
 	/**
@@ -150,24 +147,24 @@ public abstract class AbstractGameState implements Cloneable {
 	 * @param oppositeScore
 	 *            the oppositeScore to set
 	 */
-	protected void setOppositeScore(int oppositeScore) {
-		this.oppositeScore = oppositeScore;
+	protected void setPlayerScore(int oppositeScore) {
+		this.playerScore = oppositeScore;
 	}
 
 	/**
 	 * @param playerCards
 	 *            the playerCards to set
 	 */
-	public void setPlayerCards(Card... playerCards) {
-		this.playerCards = playerCards;
+	public void setAiCards(Card... playerCards) {
+		this.aiCards = playerCards;
 	}
 
 	/**
 	 * @param playerScore
 	 *            the playerScore to set
 	 */
-	protected void setPlayerScore(int playerScore) {
-		this.playerScore = playerScore;
+	protected void setAiScore(int playerScore) {
+		this.aiScore = playerScore;
 	}
 
 	/**

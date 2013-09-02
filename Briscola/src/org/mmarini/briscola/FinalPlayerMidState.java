@@ -16,33 +16,36 @@ import org.slf4j.LoggerFactory;
  * @author US00852
  * 
  */
-public class FinalAIState extends AbstractVirtualGameState {
-	private static Logger logger = LoggerFactory.getLogger(FinalAIState.class);
+public class FinalPlayerMidState extends AbstractVirtualGameState {
+	private static Logger logger = LoggerFactory
+			.getLogger(FinalPlayerMidState.class);
+
+	private Card playerCard;
 
 	/**
 	 * 
 	 */
-	public FinalAIState() {
+	public FinalPlayerMidState() {
 	}
 
 	/**
 	 * 
 	 * @param aiCard
-	 * @param playerCard
 	 * @return
 	 */
-	private AbstractGameState createState(Card aiCard, Card playerCard) {
-		logger.debug("Creating state playing {}, {}", aiCard, playerCard);
+	private AbstractGameState createState(Card aiCard) {
+		logger.debug("Creating state playing {}", aiCard);
 		Card trump = getTrump();
-		boolean winner = aiCard.wins(playerCard, trump);
+		boolean aiWinner = !playerCard.wins(aiCard, trump);
+
 		int score = computeScore(aiCard, playerCard);
 
 		Card[] aiCards = createAndRemove(getAiCards(), aiCard);
-		Card[] playerCards = createAndRemove(getPlayerCards(), playerCard);
+		Card[] playerCards = getPlayerCards();
 		int playerScore = getPlayerScore();
 		int aiScore = getAiScore();
 		AbstractVirtualGameState state = null;
-		if (winner) {
+		if (aiWinner) {
 			aiScore += score;
 			if (aiCards.length == 1) {
 				state = new LastHandAIState();
@@ -76,43 +79,42 @@ public class FinalAIState extends AbstractVirtualGameState {
 		estimation.setConfident(true);
 		estimation.setAiWinProb(0.);
 		estimation.setPlayerWinProb(0.);
-		int score = getAiScore();
-		if (score > HALF_SCORE) {
+		int aiScore = getAiScore();
+		if (aiScore > HALF_SCORE) {
 			estimation.setAiWinProb(1.);
 			return;
 		}
-		int oppositeScore = getPlayerScore();
-		if (oppositeScore > HALF_SCORE) {
+		int playerScore = getPlayerScore();
+		if (playerScore > HALF_SCORE) {
 			estimation.setPlayerWinProb(1.);
 			return;
 		}
 
-		Card[] oppositeCards = getPlayerCards();
-		Card[] playerCards = getAiCards();
-		Card bestCard = playerCards[0];
+		Card[] aiCards = getAiCards();
 		double wp = Double.NEGATIVE_INFINITY;
 		double lp = 0;
-		for (Card card : playerCards) {
-			double pl = Double.NEGATIVE_INFINITY;
-			double pw = 0;
-			for (Card opposite : oppositeCards) {
-				AbstractGameState state = createState(card, opposite);
-				state.estimate(estimation, ctx);
-				double p = estimation.getPlayerWinProb();
-				if (p > pl) {
-					pl = p;
-					pw = estimation.getAiWinProb();
-				}
-			}
-			if (pw > wp) {
-				wp = pw;
-				lp = pl;
-				bestCard = card;
+		Card bestCard = null;
+		for (Card aiCard : aiCards) {
+			AbstractGameState state = createState(aiCard);
+			state.estimate(estimation, ctx);
+			double p = estimation.getAiWinProb();
+			if (p > wp) {
+				wp = p;
+				lp = estimation.getPlayerWinProb();
+				bestCard = aiCard;
 			}
 		}
 		estimation.setAiWinProb(wp);
 		estimation.setPlayerWinProb(lp);
 		estimation.setConfident(true);
 		estimation.setBestCard(bestCard);
+	}
+
+	/**
+	 * @param playerCard
+	 *            the playerCard to set
+	 */
+	public void setPlayerCard(Card playerCard) {
+		this.playerCard = playerCard;
 	}
 }

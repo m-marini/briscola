@@ -11,7 +11,7 @@ import org.mmarini.briscola.Card.Suit;
 public class VirtualOppositeMidStateTest {
 
 	private static final Card DUE_SPADE = Card.getCard(Figure.TWO, Suit.SWORDS);
-	private VirtualOppositeMidState state;
+	private VirtualplayerMidState state;
 	private TimerSearchContext ctx;
 	private Estimation estimation;
 	private static final Card ASSO_BASTONI = Card.getCard(Figure.ACE,
@@ -28,7 +28,7 @@ public class VirtualOppositeMidStateTest {
 
 	@Before
 	public void setUp() throws Exception {
-		state = new VirtualOppositeMidState();
+		state = new VirtualplayerMidState();
 		ctx = new TimerSearchContext();
 		estimation = new Estimation();
 
@@ -42,18 +42,18 @@ public class VirtualOppositeMidStateTest {
 				ASSO_DENARI, DUE_COPPE, TRE_BASTONI, ASSO_BASTONI, TRE_COPPE,
 				QUATTRO_SPADE);
 		state.setDeckCards(deckCards);
-		state.setPlayerCards(ASSO_DENARI, DUE_COPPE, TRE_BASTONI);
-		state.setOppositeCards(TRE_COPPE, QUATTRO_SPADE);
+		state.setAiCards(ASSO_DENARI, DUE_COPPE, TRE_BASTONI);
+		state.setPlayerCards(TRE_COPPE, QUATTRO_SPADE);
 		state.setPlayedCard(ASSO_BASTONI);
+		state.setAiScore(0);
 		state.setPlayerScore(0);
-		state.setOppositeScore(0);
 		ctx.setMaxDeep(0);
 		ctx.estimate(estimation, state);
 
 		assertFalse(estimation.isConfident());
 		assertEquals(DUE_COPPE, estimation.getBestCard());
-		assertEquals(0, estimation.getWin(), EPSILON);
-		assertEquals(11. / 61., estimation.getLoss(), EPSILON);
+		assertEquals(0, estimation.getAiWinProb(), EPSILON);
+		assertEquals(11. / 61., estimation.getPlayerWinProb(), EPSILON);
 	}
 
 }

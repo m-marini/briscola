@@ -16,45 +16,45 @@ import org.slf4j.LoggerFactory;
  * @author US00852
  * 
  */
-public class VirtualOppositeStartState extends AbstractVirtualGameState {
+public class VirtualPlayerStartState extends AbstractVirtualGameState {
 
 	private static Logger logger = LoggerFactory
-			.getLogger(VirtualOppositeStartState.class);
+			.getLogger(VirtualPlayerStartState.class);
 
 	/**
 	 * 
 	 */
-	public VirtualOppositeStartState() {
+	public VirtualPlayerStartState() {
 	}
 
 	/**
 	 * 
-	 * @param opposite
-	 * @param card
+	 * @param playerCard
+	 * @param aiCard
 	 * @return
 	 */
-	private AbstractVirtualGameState createState(Card opposite, Card card) {
-		Card[] playerCards = createAndRemove(getPlayerCards(), card);
-		Card[] oppositeCards = createAndRemove(getOppositeCards(), opposite);
+	private AbstractVirtualGameState createState(Card playerCard, Card aiCard) {
+		Card[] aiCards = createAndRemove(getAiCards(), aiCard);
+		Card[] playerCards = createAndRemove(getPlayerCards(), playerCard);
 		Card trump = getTrump();
-		boolean winner = !opposite.wins(card, trump);
-		int score = computeScore(card, opposite);
+		boolean aiWinner = !playerCard.wins(aiCard, trump);
+		int score = computeScore(aiCard, playerCard);
+		int aiScore = getAiScore();
 		int playerScore = getPlayerScore();
-		int oppositeScore = getOppositeScore();
 		AbstractVirtualGameState state = null;
-		if (winner) {
-			playerScore += score;
+		if (aiWinner) {
+			aiScore += score;
 			state = new VirtualAIEndState();
 		} else {
-			oppositeScore += score;
-			state = new VirtualOppositeEndState();
+			playerScore += score;
+			state = new VirtualPlayerEndState();
 		}
 		state.setTrump(trump);
 		state.setDeckCards(getDeckCards());
+		state.setAiCards(aiCards);
+		state.setAiScore(aiScore);
 		state.setPlayerCards(playerCards);
 		state.setPlayerScore(playerScore);
-		state.setOppositeCards(oppositeCards);
-		state.setOppositeScore(oppositeScore);
 		return state;
 	}
 
@@ -66,16 +66,16 @@ public class VirtualOppositeStartState extends AbstractVirtualGameState {
 	public void estimate(Estimation estimation, StrategySearchContext ctx)
 			throws InterruptedException {
 		estimation.setConfident(true);
-		estimation.setWin(0.);
-		estimation.setLoss(0.);
-		int score = getPlayerScore();
-		if (score > HALF_SCORE) {
-			estimation.setWin(1.);
+		estimation.setAiWinProb(0.);
+		estimation.setPlayerWinProb(0.);
+		int aiScore = getAiScore();
+		if (aiScore > HALF_SCORE) {
+			estimation.setAiWinProb(1.);
 			return;
 		}
-		int oppositeScore = getOppositeScore();
-		if (oppositeScore > HALF_SCORE) {
-			estimation.setLoss(1.);
+		int plazerScore = getPlayerScore();
+		if (plazerScore > HALF_SCORE) {
+			estimation.setPlayerWinProb(1.);
 			return;
 		}
 		/*
@@ -86,36 +86,36 @@ public class VirtualOppositeStartState extends AbstractVirtualGameState {
 		double wpp = Double.NEGATIVE_INFINITY;
 		double lpp = Double.NEGATIVE_INFINITY;
 		Card bestCard = null;
-		Card playerBest = null;
-		for (Card opposite : getOppositeCards()) {
+		Card aiBest = null;
+		for (Card playerCard : getPlayerCards()) {
 			double wop = Double.NEGATIVE_INFINITY;
 			double lop = Double.NEGATIVE_INFINITY;
-			boolean playerConfident = false;
+			boolean aiConfident = false;
 			Card best = null;
-			for (Card card : getPlayerCards()) {
-				AbstractVirtualGameState state = createState(opposite, card);
+			for (Card aiCard : getAiCards()) {
+				AbstractVirtualGameState state = createState(playerCard, aiCard);
 				state.estimate(estimation, ctx);
-				double pl = estimation.getLoss();
-				double pw = estimation.getWin();
+				double pl = estimation.getPlayerWinProb();
+				double pw = estimation.getAiWinProb();
 				if (pw > wop || (pw == wop && pl < lop)) {
 					lop = pl;
 					wop = pw;
-					playerConfident = estimation.isConfident();
-					best = card;
+					aiConfident = estimation.isConfident();
+					best = aiCard;
 				}
 			}
 			if (lop > lpp || (lop == lpp && wop < wpp)) {
 				wpp = wop;
 				lpp = lop;
-				confident = playerConfident;
-				bestCard = opposite;
-				playerBest = best;
+				confident = aiConfident;
+				bestCard = playerCard;
+				aiBest = best;
 			}
 		}
 		estimation.setBestCard(bestCard);
 		estimation.setConfident(confident);
-		estimation.setLoss(lpp);
-		estimation.setWin(wpp);
-		logger.debug("{} vs {} = {}", bestCard, playerBest, estimation);
+		estimation.setPlayerWinProb(lpp);
+		estimation.setAiWinProb(wpp);
+		logger.debug("{} vs {} = {}", bestCard, aiBest, estimation);
 	}
 }

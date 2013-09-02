@@ -16,55 +16,55 @@ import org.slf4j.LoggerFactory;
  * @author US00852
  * 
  */
-public class FinalOppositeStartState extends AbstractVirtualGameState {
+public class FinalPlayerStartState extends AbstractVirtualGameState {
 
 	private Logger logger = LoggerFactory
-			.getLogger(FinalOppositeStartState.class);
+			.getLogger(FinalPlayerStartState.class);
 
 	/**
 	 * 
 	 */
-	public FinalOppositeStartState() {
+	public FinalPlayerStartState() {
 	}
 
 	/**
 	 * 
-	 * @param opposite
-	 * @param card
+	 * @param playerCard
+	 * @param aiCard
 	 * @return
 	 */
-	private AbstractGameState createState(Card opposite, Card card) {
-		logger.debug("Creating state playing {}, {}", opposite, card);
+	private AbstractGameState createState(Card playerCard, Card aiCard) {
+		logger.debug("Creating state playing {}, {}", playerCard, aiCard);
 		Card trump = getTrump();
-		boolean winner = !opposite.wins(card, trump);
-		int score = computeScore(card, opposite);
+		boolean aiWinner = !playerCard.wins(aiCard, trump);
+		int score = computeScore(aiCard, playerCard);
 
-		Card[] playerCards = createAndRemove(getPlayerCards(), card);
-		Card[] oppositeCards = createAndRemove(getOppositeCards(), opposite);
-		int oppositeScore = getOppositeScore();
+		Card[] aiCards = createAndRemove(getAiCards(), aiCard);
+		Card[] playerCards = createAndRemove(getPlayerCards(), playerCard);
 		int playerScore = getPlayerScore();
+		int aiScore = getAiScore();
 		AbstractVirtualGameState state = null;
-		if (winner) {
-			playerScore += score;
-			if (playerCards.length == 1) {
+		if (aiWinner) {
+			aiScore += score;
+			if (aiCards.length == 1) {
 				state = new LastHandAIState();
 			} else {
 				state = new FinalAIState();
 			}
 		} else {
-			oppositeScore += score;
-			if (playerCards.length == 1) {
-				state = new LastHandOppositeState();
+			playerScore += score;
+			if (aiCards.length == 1) {
+				state = new LastHandPlayerState();
 			} else {
-				state = new FinalOppositeStartState();
+				state = new FinalPlayerStartState();
 			}
 		}
 		state.setTrump(trump);
+		state.setAiCards(aiCards);
 		state.setPlayerCards(playerCards);
-		state.setOppositeCards(oppositeCards);
 		state.setDeckCards();
+		state.setAiScore(aiScore);
 		state.setPlayerScore(playerScore);
-		state.setOppositeScore(oppositeScore);
 		return state;
 	}
 
@@ -76,21 +76,21 @@ public class FinalOppositeStartState extends AbstractVirtualGameState {
 	public void estimate(Estimation estimation, StrategySearchContext ctx)
 			throws InterruptedException {
 		estimation.setConfident(true);
-		estimation.setWin(0.);
-		estimation.setLoss(0.);
-		int score = getPlayerScore();
+		estimation.setAiWinProb(0.);
+		estimation.setPlayerWinProb(0.);
+		int score = getAiScore();
 		if (score > HALF_SCORE) {
-			estimation.setWin(1.);
+			estimation.setAiWinProb(1.);
 			return;
 		}
-		int oppositeScore = getOppositeScore();
+		int oppositeScore = getPlayerScore();
 		if (oppositeScore > HALF_SCORE) {
-			estimation.setLoss(1.);
+			estimation.setPlayerWinProb(1.);
 			return;
 		}
 
-		Card[] oppositeCards = getOppositeCards();
-		Card[] playerCards = getPlayerCards();
+		Card[] oppositeCards = getPlayerCards();
+		Card[] playerCards = getAiCards();
 		double wp = Double.NEGATIVE_INFINITY;
 		double lp = Double.NEGATIVE_INFINITY;
 		for (Card opposite : oppositeCards) {
@@ -99,10 +99,10 @@ public class FinalOppositeStartState extends AbstractVirtualGameState {
 			for (Card card : playerCards) {
 				AbstractGameState state = createState(opposite, card);
 				state.estimate(estimation, ctx);
-				double p = estimation.getWin();
+				double p = estimation.getAiWinProb();
 				if (p > pw) {
 					pw = p;
-					pl = estimation.getLoss();
+					pl = estimation.getPlayerWinProb();
 				}
 			}
 			if (pl > lp) {
@@ -110,8 +110,8 @@ public class FinalOppositeStartState extends AbstractVirtualGameState {
 				wp = pw;
 			}
 		}
-		estimation.setWin(wp);
-		estimation.setLoss(lp);
+		estimation.setAiWinProb(wp);
+		estimation.setPlayerWinProb(lp);
 		estimation.setConfident(true);
 		estimation.setBestCard(null);
 	}

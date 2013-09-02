@@ -29,20 +29,20 @@ public class LastHandAIState extends AbstractVirtualGameState {
 	public void estimate(Estimation estimation,
 			StrategySearchContext strategySearchContext)
 			throws InterruptedException {
-		int score = getPlayerScore();
-		Card card = getPlayerCards()[0];
-		Card opposite = getOppositeCards()[0];
-		if (card.wins(opposite, getTrump())) {
-			score += computeScore(card, opposite);
+		int aiScore = getAiScore();
+		Card aiCard = getAiCards()[0];
+		Card playerCard = getPlayerCards()[0];
+		if (aiCard.wins(playerCard, getTrump())) {
+			aiScore += computeScore(aiCard, playerCard);
 		}
-		estimation.setBestCard(card);
+		estimation.setBestCard(aiCard);
 		estimation.setConfident(true);
-		estimation.setWin(0.);
-		estimation.setLoss(0.);
-		if (score > HALF_SCORE) {
-			estimation.setWin(1.);
-		} else if (score < HALF_SCORE) {
-			estimation.setLoss(1.);
+		estimation.setAiWinProb(0.);
+		estimation.setPlayerWinProb(0.);
+		if (aiScore > HALF_SCORE) {
+			estimation.setAiWinProb(1.);
+		} else if (aiScore < HALF_SCORE) {
+			estimation.setPlayerWinProb(1.);
 		}
 	}
 }

@@ -13,12 +13,12 @@ package org.mmarini.briscola;
  * @author US00852
  * 
  */
-public class VirtualOppositeEndState extends AbstractVirtualGameState {
+public class VirtualPlayerEndState extends AbstractVirtualGameState {
 
 	/**
 	 * 
 	 */
-	public VirtualOppositeEndState() {
+	public VirtualPlayerEndState() {
 	}
 
 	/**
@@ -29,26 +29,25 @@ public class VirtualOppositeEndState extends AbstractVirtualGameState {
 	public void estimate(Estimation estimation, StrategySearchContext ctx)
 			throws InterruptedException {
 		estimation.setConfident(true);
-		estimation.setWin(0.);
-		estimation.setLoss(0.);
-		int score = getPlayerScore();
-		int oppositeScore = getOppositeScore();
+		estimation.setAiWinProb(0.);
+		estimation.setPlayerWinProb(0.);
+		int aiScore = getAiScore();
+		int playerScore = getPlayerScore();
 		Card[] deckCards = getDeckCards();
-		if (score > HALF_SCORE) {
-			estimation.setWin(1.);
-		} else if (oppositeScore > HALF_SCORE) {
-			estimation.setLoss(1.);
+		if (aiScore > HALF_SCORE) {
+			estimation.setAiWinProb(1.);
+		} else if (playerScore > HALF_SCORE) {
+			estimation.setPlayerWinProb(1.);
 		} else if (deckCards.length == 1) {
 			// valuta direttamente la finale di partita
-			Card[] playerCard = createAndAdd(getPlayerCards(), getTrump());
-			Card[] oppositeCards = createAndAdd(getOppositeCards(),
-					deckCards[0]);
-			FinalOppositeStartState state = new FinalOppositeStartState();
+			Card[] aiCards = createAndAdd(getAiCards(), getTrump());
+			Card[] playerCards = createAndAdd(getPlayerCards(), deckCards[0]);
+			FinalPlayerStartState state = new FinalPlayerStartState();
 			state.setDeckCards();
-			state.setPlayerCards(playerCard);
+			state.setAiCards(aiCards);
+			state.setAiScore(getAiScore());
+			state.setPlayerCards(playerCards);
 			state.setPlayerScore(getPlayerScore());
-			state.setOppositeCards(oppositeCards);
-			state.setOppositeScore(getOppositeScore());
 			state.setTrump(getTrump());
 			state.estimate(estimation, ctx);
 		} else if (ctx.isSearchingDeeper()) {
@@ -79,35 +78,34 @@ public class VirtualOppositeEndState extends AbstractVirtualGameState {
 		boolean confident = true;
 		int m = n * (n - 1);
 		for (int i = 0; i < n; ++i) {
-			Card card = deckCards[i];
+			Card aiCard = deckCards[i];
 			for (int j = 0; j < n - 1; ++j) {
-				Card opposite;
+				Card playerCard;
 				if (j < i)
-					opposite = deckCards[j];
+					playerCard = deckCards[j];
 				else
-					opposite = deckCards[j + 1];
-				Card[] playerCards = createAndAdd(getPlayerCards(), card);
-				Card[] oppositeCards = createAndAdd(getOppositeCards(),
-						opposite);
-				Card[] deckCards1 = createAndRemove(getDeckCards(), card,
-						opposite);
-				VirtualOppositeStartState state = new VirtualOppositeStartState();
+					playerCard = deckCards[j + 1];
+				Card[] aiCards = createAndAdd(getAiCards(), aiCard);
+				Card[] playerCards = createAndAdd(getPlayerCards(), playerCard);
+				Card[] deckCards1 = createAndRemove(getDeckCards(), aiCard,
+						playerCard);
+				VirtualPlayerStartState state = new VirtualPlayerStartState();
 				state.setTrump(getTrump());
 				state.setDeckCards(deckCards1);
+				state.setAiCards(aiCards);
+				state.setAiScore(getAiScore());
 				state.setPlayerCards(playerCards);
 				state.setPlayerScore(getPlayerScore());
-				state.setOppositeCards(oppositeCards);
-				state.setOppositeScore(getOppositeScore());
 				state.estimate(estimation, ctx);
 
 				confident &= estimation.isConfident();
-				win += estimation.getWin() / m;
-				loss += estimation.getLoss() / m;
+				win += estimation.getAiWinProb() / m;
+				loss += estimation.getPlayerWinProb() / m;
 			}
 		}
 		estimation.setConfident(confident);
-		estimation.setWin(win);
-		estimation.setLoss(loss);
+		estimation.setAiWinProb(win);
+		estimation.setPlayerWinProb(loss);
 		estimation.setBestCard(null);
 		ctx.addLevel(-1);
 	}

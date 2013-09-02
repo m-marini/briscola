@@ -87,8 +87,8 @@ public class GameHandler {
 				ctx.setMaxDeep(maxLevel);
 				ctx.estimate(estimation, state);
 				bestCard = estimation.getBestCard();
-				aiWinProbability = estimation.getWin();
-				aiLossProbability = estimation.getLoss();
+				aiWinProbability = estimation.getAiWinProb();
+				aiLossProbability = estimation.getPlayerWinProb();
 				confident = estimation.isConfident();
 				level = maxLevel;
 				if (analyzerListener != null)
@@ -210,23 +210,23 @@ public class GameHandler {
 		AbstractGameState s;
 		if (playerHand) {
 			if (deck.isEmpty()) {
-				FinalOppositeMidState state = new FinalOppositeMidState();
+				FinalPlayerMidState state = new FinalPlayerMidState();
 				state.setDeckCards();
-				state.setOppositeCards(playerCards.toArray(new Card[0]));
-				state.setOppositeCard(playerCard);
+				state.setPlayerCards(playerCards.toArray(new Card[0]));
+				state.setPlayerCard(playerCard);
 				s = state;
 			} else {
 				List<Card> newDeck = new ArrayList<Card>(deck);
 				newDeck.addAll(playerCards);
-				GameOppositeState state = new GameOppositeState();
+				GamePlayerState state = new GamePlayerState();
 				state.setDeckCards(newDeck.toArray(new Card[0]));
-				state.setOppositeCard(playerCard);
+				state.setPlayerCard(playerCard);
 				s = state;
 			}
 		} else {
 			if (deck.isEmpty()) {
 				FinalAIState state = new FinalAIState();
-				state.setOppositeCards(playerCards.toArray(new Card[0]));
+				state.setPlayerCards(playerCards.toArray(new Card[0]));
 				state.setDeckCards();
 				s = state;
 			} else {
@@ -237,9 +237,9 @@ public class GameHandler {
 				s = state;
 			}
 		}
-		s.setPlayerCards(aiCards.toArray(new Card[0]));
-		s.setPlayerScore(aiScore);
-		s.setOppositeScore(playerScore);
+		s.setAiCards(aiCards.toArray(new Card[0]));
+		s.setAiScore(aiScore);
+		s.setPlayerScore(playerScore);
 		s.setTrump(trump);
 		return s;
 	}

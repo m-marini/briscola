@@ -37,16 +37,16 @@ public class GameAIStateTest {
 		Card[] deckCards = AbstractGameState.createAndRemove(Card.getDeck(),
 				ASSO_DENARI, DUE_COPPE, TRE_BASTONI);
 		state.setDeckCards(deckCards);
-		state.setPlayerCards(ASSO_DENARI, DUE_COPPE, TRE_BASTONI);
+		state.setAiCards(ASSO_DENARI, DUE_COPPE, TRE_BASTONI);
+		state.setAiScore(0);
 		state.setPlayerScore(0);
-		state.setOppositeScore(0);
 		ctx.setMaxDeep(0);
 		ctx.estimate(estimation, state);
 
 		assertEquals(ASSO_DENARI, estimation.getBestCard());
 		assertFalse(estimation.isConfident());
-		assertEquals(11.58e-3, estimation.getWin(), EPSILON);
-		assertEquals(19e-6, estimation.getLoss(), EPSILON);
+		assertEquals(11.58e-3, estimation.getAiWinProb(), EPSILON);
+		assertEquals(19e-6, estimation.getPlayerWinProb(), EPSILON);
 	}
 
 }

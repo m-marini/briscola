@@ -23,13 +23,13 @@ public class VirtualOppositeStartStateTest {
 			Suit.SWORDS);
 	private static final Card TRE_COPPE = Card.getCard(Figure.THREE, Suit.CUPS);
 
-	private VirtualOppositeStartState state;
+	private VirtualPlayerStartState state;
 	private TimerSearchContext ctx;
 	private Estimation estimation;
 
 	@Before
 	public void setUp() throws Exception {
-		state = new VirtualOppositeStartState();
+		state = new VirtualPlayerStartState();
 		state.setTrump(DUE_SPADE);
 		estimation = new Estimation();
 		ctx = new TimerSearchContext();
@@ -42,16 +42,16 @@ public class VirtualOppositeStartStateTest {
 				ASSO_DENARI, DUE_COPPE, TRE_BASTONI, ASSO_BASTONI, TRE_COPPE,
 				QUATTRO_SPADE);
 		state.setDeckCards(deckCards);
-		state.setPlayerCards(ASSO_DENARI, DUE_COPPE, TRE_BASTONI);
-		state.setOppositeCards(ASSO_BASTONI, TRE_COPPE, QUATTRO_SPADE);
+		state.setAiCards(ASSO_DENARI, DUE_COPPE, TRE_BASTONI);
+		state.setPlayerCards(ASSO_BASTONI, TRE_COPPE, QUATTRO_SPADE);
+		state.setAiScore(0);
 		state.setPlayerScore(0);
-		state.setOppositeScore(0);
 		ctx.setMaxDeep(0);
 		ctx.estimate(estimation, state);
 
 		assertFalse(estimation.isConfident());
-		assertEquals(0, estimation.getWin(), EPSILON);
-		assertEquals(11. / 61., estimation.getLoss(), EPSILON);
+		assertEquals(0, estimation.getAiWinProb(), EPSILON);
+		assertEquals(11. / 61., estimation.getPlayerWinProb(), EPSILON);
 	}
 
 }

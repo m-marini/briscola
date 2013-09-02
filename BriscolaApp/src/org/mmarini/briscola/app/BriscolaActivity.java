@@ -31,7 +31,6 @@ import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
 import android.os.AsyncTask;
-import android.os.AsyncTask.Status;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
@@ -446,6 +445,23 @@ public class BriscolaActivity extends Activity {
 			paused = false;
 		}
 		loadValues();
+
+		File folder = Environment
+				.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+		folder = new File(folder.getParentFile(), "Briscola");
+		folder.mkdir();
+		logger.debug("File: {} {}", folder.getAbsolutePath(),
+				folder.isDirectory());
+
+		listFiles("/mnt/sdcard");
+		listFiles("/mnt/sdcard/external_sd");
+	}
+
+	private void listFiles(String path) {
+		File folder = new File(path);
+		for (File file : folder.listFiles()) {
+			logger.debug("File: {}", file.getAbsolutePath());
+		}
 	}
 
 	/**
@@ -578,8 +594,8 @@ public class BriscolaActivity extends Activity {
 			mediaPlayer.release();
 			mediaPlayer = null;
 		}
-//		if (analysisTask != null)
-//			analysisTask.cancel(true);
+		// if (analysisTask != null)
+		// analysisTask.cancel(true);
 		paused = true;
 	}
 
