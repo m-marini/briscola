@@ -1,5 +1,14 @@
 package org.mmarini.briscola.app;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,12 +21,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.AlertDialog.Builder;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
+import android.media.MediaPlayer;
 import android.os.AsyncTask;
+import android.os.AsyncTask.Status;
 import android.os.Bundle;
+import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -36,17 +52,21 @@ import android.widget.TextView;
  * 
  */
 public class BriscolaActivity extends Activity {
+	private static final String TRACE_FILENAME = "briscola.trace";
+	private static final String BRISCOLA_FILE_SEPARATOR = ",";
+	private static final String BRISCOLA_FILE = "briscola.txt";
 	private static final String GAME_HANDLER_KEY = "gameHandler";
 	private static final int THINK_DURATION = 1000;
 	private static final String TEST_STATE = "aiWonGame=0;playerCards=18,10,11;playerHand=true;playerWonGame=0;aiScore=60;playerFirstHand=false;aiCards=0,1,2;status=PLAYER_MOVE;"
 			+ "deck=20;" + "trump=8;playerScore=40;";
+	private static final boolean TRACE_ENABLED = false;
 
 	private static Logger logger = LoggerFactory
 			.getLogger(BriscolaActivity.class);
 
-	private ImageView[] playerCards;
-	private ImageView[] aiCards;
-	private ImageView deck;
+	private ImageView[] playerCardViews;
+	private ImageView[] aiCardViews;
+	private ImageView deckView;
 	private OnTouchListener dealInitListener;
 	private OnTouchListener dealNextListener;
 	private OnTouchListener playerCardListener;
@@ -63,20 +83,25 @@ public class BriscolaActivity extends Activity {
 	private ProgressBar progressBar;
 	private Map<Card, Integer> cardResIdMap;
 	private int movedCardId;
-	private ImageView aiCard;
-	private ImageView playerCard;
+	private ImageView aiCardView;
+	private ImageView playerCardView;
 	private CleanUpAnimator cleanUpAnimator;
 	private String gameStateBackUp;
 	private CardDrawableFactory cardDrawableFactory;
+	private boolean paused;
+	private ImageView trumpCardView;
+	private MediaPlayer mediaPlayer;
+	private AsyncTask<Void, Void, Void> analysisTask;
 
 	/**
 	 * 
 	 */
 	public BriscolaActivity() {
+		paused = false;
 		cardResIdMap = new HashMap<Card, Integer>();
 		handler = new GameHandler();
-		playerCards = new ImageView[3];
-		aiCards = new ImageView[3];
+		playerCardViews = new ImageView[3];
+		aiCardViews = new ImageView[3];
 		aiMoveAnimator = new AIMoveAnimator(this);
 		initalDealAnimator = new InitialDealAnimator(this);
 		nextDealAnimator = new NextDealAnimator(this);
@@ -216,6 +241,7 @@ public class BriscolaActivity extends Activity {
 	private void analyze() {
 		logger.debug("Running analisys ...");
 		handler.think();
+		trace();
 		logger.debug("Analisys completed.");
 	}
 
@@ -234,6 +260,7 @@ public class BriscolaActivity extends Activity {
 	void dealForStart() {
 		disableButtons();
 		handler.deal();
+		trace();
 		refreshData();
 		cardResIdMap.clear();
 		cardResIdMap.put(handler.getPlayerCard(0), R.id.playerCard1);
@@ -249,11 +276,14 @@ public class BriscolaActivity extends Activity {
 	private boolean dealNext() {
 		disableButtons();
 		handler.closeHand();
+		trace();
 		refreshData();
 		if (handler.isFinished()) {
+			saveValues();
 			cleanUpAnimator.start();
 		} else {
 			handler.deal();
+			trace();
 			List<Card> cards = handler.getPlayerCards();
 			Card newCard = null;
 			if (cards.size() == 3) {
@@ -274,10 +304,10 @@ public class BriscolaActivity extends Activity {
 	 * 
 	 */
 	private void disableButtons() {
-		deck.setEnabled(false);
-		aiCard.setEnabled(false);
-		playerCard.setEnabled(false);
-		for (ImageView b : playerCards) {
+		deckView.setEnabled(false);
+		aiCardView.setEnabled(false);
+		playerCardView.setEnabled(false);
+		for (ImageView b : playerCardViews) {
 			b.setEnabled(false);
 		}
 	}
@@ -286,8 +316,8 @@ public class BriscolaActivity extends Activity {
 	 * 
 	 */
 	private void enableCardButtons() {
-		Drawable drw = getResources().getDrawable(R.drawable.empty);
-		for (ImageView b : playerCards) {
+		Drawable drw = getResources().getDrawable(R.drawable.ic_empty);
+		for (ImageView b : playerCardViews) {
 			if (!b.getDrawable().equals(drw)) {
 				b.setEnabled(true);
 			}
@@ -299,12 +329,12 @@ public class BriscolaActivity extends Activity {
 	 * @param listener
 	 */
 	private void enableDeal(OnTouchListener listener) {
-		deck.setOnTouchListener(listener);
-		deck.setEnabled(true);
-		aiCard.setOnTouchListener(listener);
-		aiCard.setEnabled(true);
-		playerCard.setOnTouchListener(listener);
-		playerCard.setEnabled(true);
+		deckView.setOnTouchListener(listener);
+		deckView.setEnabled(true);
+		aiCardView.setOnTouchListener(listener);
+		aiCardView.setEnabled(true);
+		playerCardView.setOnTouchListener(listener);
+		playerCardView.setEnabled(true);
 	}
 
 	/**
@@ -337,6 +367,7 @@ public class BriscolaActivity extends Activity {
 		movedCardId = view.getId();
 		Card card = getCardByResId(movedCardId);
 		handler.play(card);
+		trace();
 		cardResIdMap.remove(card);
 		playerAnimator.start(movedCardId);
 	}
@@ -381,44 +412,97 @@ public class BriscolaActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
 		logger.debug("onCreate");
-		if (savedInstanceState != null) {
-			restoreHandler(savedInstanceState);
-		} else {
-			handler.clear();
-
-		}
 		setContentView(R.layout.activity_briscola);
 
-		playerCards[0] = (ImageView) findViewById(R.id.playerCard1);
-		playerCards[1] = (ImageView) findViewById(R.id.playerCard2);
-		playerCards[2] = (ImageView) findViewById(R.id.playerCard3);
+		playerCardViews[0] = (ImageView) findViewById(R.id.playerCard1);
+		playerCardViews[1] = (ImageView) findViewById(R.id.playerCard2);
+		playerCardViews[2] = (ImageView) findViewById(R.id.playerCard3);
 
-		aiCards[0] = (ImageView) findViewById(R.id.aiCard1);
-		aiCards[1] = (ImageView) findViewById(R.id.aiCard2);
-		aiCards[2] = (ImageView) findViewById(R.id.aiCard3);
-		deck = (ImageView) findViewById(R.id.deck);
-		aiCard = (ImageView) findViewById(R.id.aiCard);
-		playerCard = (ImageView) findViewById(R.id.playerCard);
-
-		deck.setOnTouchListener(dealInitListener);
-		for (ImageView view : playerCards) {
-			view.setOnTouchListener(playerCardListener);
-		}
-		disableButtons();
-		deck.setOnTouchListener(dealInitListener);
-		deck.setEnabled(true);
+		aiCardViews[0] = (ImageView) findViewById(R.id.aiCard1);
+		aiCardViews[1] = (ImageView) findViewById(R.id.aiCard2);
+		aiCardViews[2] = (ImageView) findViewById(R.id.aiCard3);
+		deckView = (ImageView) findViewById(R.id.deck);
+		aiCardView = (ImageView) findViewById(R.id.aiCard);
+		playerCardView = (ImageView) findViewById(R.id.playerCard);
+		trumpCardView = (ImageView) findViewById(R.id.trumpCard);
 
 		aiWonGame = (TextView) findViewById(R.id.aiWonGame);
 		aiScore = (TextView) findViewById(R.id.aiScore);
 		playerWonGame = (TextView) findViewById(R.id.playerWonGame);
 		playerScore = (TextView) findViewById(R.id.playerScore);
 		deckCount = (TextView) findViewById(R.id.deckCount);
-
 		progressBar = (ProgressBar) findViewById(R.id.progressBar);
-		// restoreHandlerState(TEST_STATE);
-		reloadSettings();
-		refreshData();
-		backUpGameState();
+
+		for (ImageView view : playerCardViews) {
+			view.setOnTouchListener(playerCardListener);
+		}
+
+		if (savedInstanceState != null) {
+			paused = true;
+			restoreHandler(savedInstanceState);
+		} else {
+			handler.clear();
+			// restoreHandlerState(TEST_STATE);
+			paused = false;
+		}
+		loadValues();
+	}
+
+	/**
+	 * 
+	 */
+	private void loadValues() {
+		FileInputStream stream;
+		try {
+			stream = openFileInput(BRISCOLA_FILE);
+			try {
+				BufferedReader in = new BufferedReader(new InputStreamReader(
+						stream));
+				String line = in.readLine();
+				logger.debug("loadValues: {}", line);
+				if (line != null) {
+					String[] args = line.split(BRISCOLA_FILE_SEPARATOR);
+					if (args.length >= 0)
+						handler.setPlayerWonGame(Integer.parseInt(args[0]));
+					if (args.length >= 1)
+						handler.setAiWonGame(Integer.parseInt(args[1]));
+					if (args.length >= 2)
+						handler.setPlayerFirstHand(Boolean
+								.parseBoolean(args[2]));
+				}
+			} finally {
+				stream.close();
+			}
+		} catch (IOException e) {
+			logger.error("Error reading file " + BRISCOLA_FILE, e);
+		}
+	}
+
+	/**
+	 * 
+	 */
+	private void saveValues() {
+		FileOutputStream stream;
+		try {
+			stream = openFileOutput(BRISCOLA_FILE, MODE_PRIVATE);
+			try {
+				StringBuilder line = new StringBuilder();
+				line.append(handler.getPlayerWonGame())
+						.append(BRISCOLA_FILE_SEPARATOR)
+						.append(handler.getAiWonGame())
+						.append(BRISCOLA_FILE_SEPARATOR)
+						.append(handler.isPlayerFirstHand());
+
+				PrintWriter out = new PrintWriter(stream);
+				out.println(line);
+				out.close();
+				logger.debug("saveValues: {}", line);
+			} finally {
+				stream.close();
+			}
+		} catch (IOException e) {
+			logger.error("Error writting file " + BRISCOLA_FILE, e);
+		}
 	}
 
 	/**
@@ -490,6 +574,49 @@ public class BriscolaActivity extends Activity {
 	protected void onPause() {
 		super.onPause();
 		logger.debug("onPause");
+		if (mediaPlayer != null) {
+			mediaPlayer.release();
+			mediaPlayer = null;
+		}
+//		if (analysisTask != null)
+//			analysisTask.cancel(true);
+		paused = true;
+	}
+
+	/**
+	 * 
+	 */
+	private void startResumeDialog() {
+		Builder builder = new Builder(this);
+		builder.setMessage(R.string.resume_message);
+		builder.setPositiveButton(R.string.yes_text, new OnClickListener() {
+
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				resumeGame();
+			}
+		});
+		builder.setNegativeButton(R.string.no_text, new OnClickListener() {
+
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				BriscolaActivity.this.finish();
+			}
+		});
+		AlertDialog dialog = builder.create();
+		dialog.show();
+	}
+
+	/**
+	 * 
+	 */
+	private void resumeGame() {
+		logger.debug("resume");
+		paused = false;
+		reloadSettings();
+		refreshViews();
+		refreshData();
+		restoreButtons();
 	}
 
 	/**
@@ -531,7 +658,11 @@ public class BriscolaActivity extends Activity {
 	protected void onResume() {
 		super.onResume();
 		logger.debug("onResume");
-		reloadSettings();
+		if (paused)
+			startResumeDialog();
+		else {
+			resumeGame();
+		}
 	}
 
 	/**
@@ -587,117 +718,65 @@ public class BriscolaActivity extends Activity {
 	private void refreshViews() {
 		// Set deck cards view
 		int n = handler.getDeckCount();
-		if (n == 0) {
-			((ImageView) findViewById(R.id.trumpCard))
-					.setImageResource(R.drawable.empty);
-			((ImageView) findViewById(R.id.deck))
-					.setImageResource(R.drawable.empty);
-		} else {
+		if (handler.isFinished()) {
+			trumpCardView.setImageResource(R.drawable.ic_empty);
+			deckView.setImageResource(R.drawable.ic_deck);
+		} else if (n > 0) {
 			// Set trump card view
 			Card card = handler.getTrump();
 			if (card == null) {
-				((ImageView) findViewById(R.id.trumpCard))
-						.setImageResource(R.drawable.empty);
+				trumpCardView.setImageResource(R.drawable.ic_empty);
 			} else {
 				int cardId = cardDrawableFactory.findResId(card);
-				((ImageView) findViewById(R.id.trumpCard))
-						.setImageResource(cardId);
+				trumpCardView.setImageResource(cardId);
 			}
-			((ImageView) findViewById(R.id.deck))
-					.setImageResource(R.drawable.deck);
+			deckView.setImageResource(R.drawable.ic_deck);
+		} else {
+			trumpCardView.setImageResource(R.drawable.ic_empty);
+			deckView.setImageResource(R.drawable.ic_empty);
 		}
 
 		// Set player card view
 		Card card = handler.getPlayerCard();
 		if (card == null) {
-			((ImageView) findViewById(R.id.playerCard))
-					.setImageResource(R.drawable.empty);
+			playerCardView.setImageResource(R.drawable.ic_empty);
 		} else {
 			int cardId = cardDrawableFactory.findResId(card);
-			((ImageView) findViewById(R.id.playerCard))
-					.setImageResource(cardId);
+			playerCardView.setImageResource(cardId);
 		}
 
 		// Set ai card view
 		card = handler.getAiCard();
 		if (card == null) {
-			((ImageView) findViewById(R.id.playerCard))
-					.setImageResource(R.drawable.empty);
+			playerCardView.setImageResource(R.drawable.ic_empty);
 		} else {
 			int cardId = cardDrawableFactory.findResId(card);
-			((ImageView) findViewById(R.id.aiCard)).setImageResource(cardId);
+			aiCardView.setImageResource(cardId);
 		}
 
 		// Set ai cards view
 		n = handler.getAiCardCount();
-		switch (n) {
-		case 0:
-			((ImageView) findViewById(R.id.aiCard1))
-					.setImageResource(R.drawable.empty);
-			((ImageView) findViewById(R.id.aiCard2))
-					.setImageResource(R.drawable.empty);
-			((ImageView) findViewById(R.id.aiCard3))
-					.setImageResource(R.drawable.empty);
-			break;
-		case 1:
-			((ImageView) findViewById(R.id.aiCard1))
-					.setImageResource(R.drawable.retro_rot);
-			((ImageView) findViewById(R.id.aiCard2))
-					.setImageResource(R.drawable.empty);
-			((ImageView) findViewById(R.id.aiCard3))
-					.setImageResource(R.drawable.empty);
-			break;
-		case 2:
-			((ImageView) findViewById(R.id.aiCard1))
-					.setImageResource(R.drawable.retro_rot);
-			((ImageView) findViewById(R.id.aiCard2))
-					.setImageResource(R.drawable.retro_rot);
-			((ImageView) findViewById(R.id.aiCard3))
-					.setImageResource(R.drawable.empty);
-			break;
-		default:
-			((ImageView) findViewById(R.id.aiCard1))
-					.setImageResource(R.drawable.retro_rot);
-			((ImageView) findViewById(R.id.aiCard2))
-					.setImageResource(R.drawable.retro_rot);
-			((ImageView) findViewById(R.id.aiCard3))
-					.setImageResource(R.drawable.retro_rot);
-			break;
+		for (int i = 0; i < 3; ++i) {
+			if (i >= n) {
+				aiCardViews[i].setImageResource(R.drawable.ic_empty);
+			} else {
+				aiCardViews[i].setImageResource(R.drawable.ic_back_rev);
+			}
 		}
 
 		// Set player cards view
 		cardResIdMap.clear();
 		List<Card> cards = handler.getPlayerCards();
 		n = cards.size();
-		if (n == 0) {
-			((ImageView) findViewById(R.id.playerCard1))
-					.setImageResource(R.drawable.empty);
-		} else {
-			card = cards.get(0);
-			int cardId = cardDrawableFactory.findResId(card);
-			((ImageView) findViewById(R.id.playerCard1))
-					.setImageResource(cardId);
-			cardResIdMap.put(card, R.id.playerCard1);
-		}
-		if (n <= 1) {
-			((ImageView) findViewById(R.id.playerCard2))
-					.setImageResource(R.drawable.empty);
-		} else {
-			card = cards.get(1);
-			int cardId = cardDrawableFactory.findResId(card);
-			((ImageView) findViewById(R.id.playerCard2))
-					.setImageResource(cardId);
-			cardResIdMap.put(card, R.id.playerCard2);
-		}
-		if (n <= 2) {
-			((ImageView) findViewById(R.id.playerCard3))
-					.setImageResource(R.drawable.empty);
-		} else {
-			card = cards.get(2);
-			int cardId = cardDrawableFactory.findResId(card);
-			((ImageView) findViewById(R.id.playerCard3))
-					.setImageResource(cardId);
-			cardResIdMap.put(card, R.id.playerCard3);
+		for (int i = 0; i < 3; ++i) {
+			if (i >= n) {
+				playerCardViews[i].setImageResource(R.drawable.ic_empty);
+			} else {
+				card = cards.get(i);
+				int cardId = cardDrawableFactory.findResId(card);
+				playerCardViews[i].setImageResource(cardId);
+				cardResIdMap.put(card, playerCardViews[i].getId());
+			}
 		}
 	}
 
@@ -716,11 +795,17 @@ public class BriscolaActivity extends Activity {
 		}
 		boolean scoreVisible = sharePrefs.getBoolean("score_visible", true);
 		if (scoreVisible) {
-			findViewById(R.id.aiScore).setVisibility(View.VISIBLE);
-			findViewById(R.id.playerScore).setVisibility(View.VISIBLE);
+			aiScore.setVisibility(View.VISIBLE);
+			playerScore.setVisibility(View.VISIBLE);
 		} else {
-			findViewById(R.id.aiScore).setVisibility(View.INVISIBLE);
-			findViewById(R.id.playerScore).setVisibility(View.INVISIBLE);
+			aiScore.setVisibility(View.INVISIBLE);
+			playerScore.setVisibility(View.INVISIBLE);
+		}
+		boolean musicEnabled = sharePrefs.getBoolean("music_enabled", true);
+		if (musicEnabled) {
+			mediaPlayer = MediaPlayer.create(this, R.raw.music);
+			mediaPlayer.setLooping(true);
+			mediaPlayer.start();
 		}
 	}
 
@@ -737,13 +822,22 @@ public class BriscolaActivity extends Activity {
 	 */
 	private void restoreHandlerState() {
 		logger.debug("restoreHandler: {}", gameStateBackUp);
-		GameMemento memento = GameMemento.create(gameStateBackUp);
-		handler.applyMemento(memento);
-		reloadSettings();
-		refreshData();
+		if (gameStateBackUp != null) {
+			GameMemento memento = GameMemento.create(gameStateBackUp);
+			handler.applyMemento(memento);
+			reloadSettings();
+			refreshData();
+			refreshViews();
+			restoreButtons();
+		}
+	}
 
+	/**
+	 * 
+	 */
+	private void restoreButtons() {
+		logger.debug("restoreButtons");
 		disableButtons();
-		refreshViews();
 		switch (handler.getStatus()) {
 		case PLAYER_MOVE:
 			enableCardButtons();
@@ -780,20 +874,49 @@ public class BriscolaActivity extends Activity {
 	private void startAnalysis() {
 		logger.debug("Analysing ...");
 		progressBar.setVisibility(View.VISIBLE);
-		new AsyncTask<Void, Void, Void>() {
+		analysisTask = new AsyncTask<Void, Void, Void>() {
 			@Override
 			protected Void doInBackground(Void... params) {
 				analyze();
 				return null;
 			}
 
-			/**
-			 * @see android.os.AsyncTask#onPostExecute(java.lang.Object)
-			 */
 			@Override
 			protected void onPostExecute(Void result) {
 				onAnalysisEnd();
 			}
 		}.execute();
+	}
+
+	/**
+	 * 
+	 */
+	private void trace() {
+		if (TRACE_ENABLED
+				&& Environment.MEDIA_MOUNTED.equals(Environment
+						.getExternalStorageState())) {
+			File folder = Environment
+					.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+			File file = new File(folder, TRACE_FILENAME);
+			logger.debug("external file: {}", file);
+
+			folder.mkdirs();
+			try {
+				FileWriter fo = new FileWriter(file);
+				try {
+					PrintWriter out = new PrintWriter(fo);
+					out.print(new Date());
+					out.print(": ");
+					out.print(handler.createMemento().toString());
+					out.println();
+					out.close();
+				} finally {
+					fo.close();
+				}
+			} catch (IOException e) {
+				logger.error(e.getMessage(), e);
+			}
+
+		}
 	}
 }

@@ -13,5 +13,9 @@
     <string name="think_time_name">Think time</string>
     <string name="default_think_time_value">10</string>
     <string name="score_view_title">Scores visible</string>
-
+    <string name="resume_message">Would you resume game?</string>
+    <string name="yes_text">Yes</string>
+    <string name="no_text">No</string>
+    <string name="music_title">Music</string>
+    
 </resources>

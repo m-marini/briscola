@@ -9,6 +9,8 @@ package org.mmarini.briscola;
  */
 public abstract class AbstractVirtualGameState extends AbstractGameState {
 
+	private static final int MAX_TRUMP_LEVEL = 10 + 9 + 8;
+
 	/**
 	 * 
 	 * @param a
@@ -42,12 +44,41 @@ public abstract class AbstractVirtualGameState extends AbstractGameState {
 		 */
 		double playerScore = between(getPlayerScore(), 0, 61);
 		double oppositeScore = between(getOppositeScore(), 0, 61);
+		double playerTrumps = between(computeTrumpLevel(getPlayerCards()), 0,
+				MAX_TRUMP_LEVEL) / 62;
+		double oppositeTrumps = between(computeTrumpLevel(getOppositeCards()),
+				0, MAX_TRUMP_LEVEL) / 62;
 
-		double win = playerScore;
-		double loss = oppositeScore;
+		double win = more(playerScore, playerTrumps);
+		double loss = more(oppositeScore, oppositeTrumps);
 		estimation.setConfident(false);
 		estimation.setWin(win);
 		estimation.setLoss(loss);
+	}
+
+	/**
+	 * 
+	 * @param a
+	 * @param b
+	 * @return
+	 */
+	private static double more(double a, double b) {
+		return Math.min(1, a + b);
+	}
+
+	/**
+	 * 
+	 * @param cards
+	 * @return
+	 */
+	private int computeTrumpLevel(Card[] cards) {
+		int score = 0;
+		for (Card c : cards) {
+			if (c.hasSameSeed(getTrump())) {
+				score += c.getFigure().ordinal() + 1;
+			}
+		}
+		return score;
 	}
 
 	/**

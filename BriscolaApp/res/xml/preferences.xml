@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
 
-    <CheckBoxPreference
+    <CheckBoxPreference android:defaultValue="true" android:key="music_enabled" android:title="@string/music_title"/><CheckBoxPreference
         android:defaultValue="true"
         android:key="score_visible"
         android:title="@string/score_view_title"/>
@@ -12,5 +12,6 @@
         android:entryValues="@array/think_time_value"
         android:key="think_time"
         android:title="@string/think_time_name" />
+    
 
 </PreferenceScreen>

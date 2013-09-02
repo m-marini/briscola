@@ -58,6 +58,7 @@ public class GameHandler {
 	private int level;
 	private GameStatus status;
 	private TimerSearchContext ctx;
+	private Card bestCard;
 
 	/**
 	 * 
@@ -78,7 +79,7 @@ public class GameHandler {
 	private void analise() {
 		AbstractGameState state = createState();
 		Estimation estimation = new Estimation();
-		Card bestCard = null;
+		bestCard = null;
 		ctx.setTimeout(timeout);
 		int maxLevel = 0;
 		try {
@@ -533,5 +534,50 @@ public class GameHandler {
 		} else {
 			analise();
 		}
+	}
+
+	/**
+	 * @param playerWonGame
+	 *            the playerWonGame to set
+	 */
+	public void setPlayerWonGame(int playerWonGame) {
+		this.playerWonGame = playerWonGame;
+	}
+
+	/**
+	 * @param aiWonGame
+	 *            the aiWonGame to set
+	 */
+	public void setAiWonGame(int aiWonGame) {
+		this.aiWonGame = aiWonGame;
+	}
+
+	/**
+	 * @return the playerFirstHand
+	 */
+	public boolean isPlayerFirstHand() {
+		return playerFirstHand;
+	}
+
+	/**
+	 * @param playerFirstHand
+	 *            the playerFirstHand to set
+	 */
+	public void setPlayerFirstHand(boolean playerFirstHand) {
+		this.playerFirstHand = playerFirstHand;
+	}
+
+	/**
+	 * @return the aiCards
+	 */
+	public List<Card> getAiCards() {
+		return aiCards;
+	}
+
+	/**
+	 * @return the bestCard
+	 */
+	public Card getBestCard() {
+		return bestCard;
 	}
 }

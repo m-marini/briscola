@@ -37,7 +37,7 @@ public class PlayerMoveAnimator extends AbstractAnimator {
 		AnimationSet set = new AnimationSet(false);
 		set.addAnimation(createTranslation(cardViewId, cardViewId,
 				R.id.playerCard, 0));
-		set.addAnimation(createChangeDrawable(cardViewId, R.drawable.empty,
+		set.addAnimation(createChangeDrawable(cardViewId, R.drawable.ic_empty,
 				computeDuration(1)));
 		set.setAnimationListener(getAnimationListener());
 		Activity activity = getActivity();

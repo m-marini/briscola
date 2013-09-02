@@ -83,7 +83,7 @@ public class CardSuitFactory {
 	public Map<Card, ImageIcon> createMap() {
 		Map<Card, ImageIcon> map = new HashMap<>();
 		for (Card c : Card.getDeck()) {
-			String name = "/img/" + createImageId(c) + "Trevigiane.jpg";
+			String name = "/img/ic_card" + createImageId(c) + ".png";
 			URL url = getClass().getResource(name);
 			ImageIcon image = new ImageIcon(url);
 			map.put(c, image);
@@ -95,8 +95,8 @@ public class CardSuitFactory {
 	 * 
 	 * @return
 	 */
-	public ImageIcon createRetro() {
-		URL url = getClass().getResource("/img/retroTrevigiane.jpg");
+	public ImageIcon createBack() {
+		URL url = getClass().getResource("/img/ic_back.png");
 		ImageIcon image = new ImageIcon(url);
 		return image;
 	}

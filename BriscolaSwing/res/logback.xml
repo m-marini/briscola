@@ -7,13 +7,31 @@
     </encoder> 
   </appender> 
 
+  <appender name="TRACER" class="ch.qos.logback.core.rolling.RollingFileAppender"> 
+    <!-- encoders are assigned the type 
+         ch.qos.logback.classic.encoder.PatternLayoutEncoder by default --> 
+    <file>briscola.trace</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy"> 
+      <!-- daily rollover --> 
+      <fileNamePattern>briscola.%d{yyyy-MM-dd}.trace</fileNamePattern> 
+      <!-- keep 31 days' worth of history --> 
+      <maxHistory>31</maxHistory> 
+    </rollingPolicy> 
+    <encoder> 
+      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern> 
+    </encoder> 
+  </appender> 
   <!--
   <logger name="org.mmarini.briscola.FinalAIState" level="DEBUG"/> 
   <logger name="org.mmarini.briscola.AbstractAgent" level="debug"/> 
   <logger name="org.mmarini.briscola.VirtualAIStartState" level="debug"/> 
   <logger name="org.mmarini.briscola.VirtualOppositeStartState" level="debug"/> 
   -->
-  <root level="debug"> 
+  <logger name="org.mmarini.briscola.gui.Tracer" level="info">
+	<appender-ref ref="TRACER" /> 
+  </logger> 
+  <logger name="org.mmarini.briscola.gui.Main" level="debug"/> 
+  <root level="info"> 
     <appender-ref ref="STDOUT" /> 
   </root> 
 </configuration>

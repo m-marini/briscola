@@ -54,6 +54,7 @@ public class Main extends JFrame implements AnalyzerListener {
 		new Main();
 	}
 
+	private Tracer tracer;
 	private GameHandler handler;
 	private AbstractAction dealAction;
 	private AbstractAction closeAction;
@@ -70,18 +71,23 @@ public class Main extends JFrame implements AnalyzerListener {
 	private JFormattedTextField aiLossProb;
 	private JCheckBox confident;
 	private JButton[] playerCards;
+	private JLabel[] aiCards;
 	private JButton continueButton;
 	private Map<Card, ImageIcon> cardSuitMap;
 	private ImageIcon retro;
 	private JFormattedTextField thinkLevel;
-
 	private JProgressBar progressBar;
+	private boolean debugAiGame;
 
 	/**
 	 * @throws HeadlessException
 	 */
 	public Main() throws HeadlessException {
+		debugAiGame = Boolean.parseBoolean(System.getProperty("debug.ai.game",
+				"false"));
+		logger.info("debug.ai.game={}", debugAiGame);
 		handler = new GameHandler();
+		tracer = new Tracer();
 		handler.setSeed(1);
 		playerCard = new JLabel();
 		aiCard = new JLabel();
@@ -99,13 +105,17 @@ public class Main extends JFrame implements AnalyzerListener {
 		confident = new JCheckBox();
 		continueButton = new JButton();
 		playerCards = new JButton[3];
+		aiCards = new JLabel[3];
 		for (int i = 0; i < playerCards.length; ++i) {
 			playerCards[i] = new JButton();
+		}
+		for (int i = 0; i < playerCards.length; ++i) {
+			aiCards[i] = new JLabel();
 		}
 
 		CardSuitFactory cardSuitFactory = new CardSuitFactory();
 		cardSuitMap = cardSuitFactory.createMap();
-		retro = cardSuitFactory.createRetro();
+		retro = cardSuitFactory.createBack();
 		createActions();
 
 		handler.setAnalyzerListener(this);
@@ -191,9 +201,17 @@ public class Main extends JFrame implements AnalyzerListener {
 	private void closeHand() {
 		logger.debug("Close hand");
 		handler.closeHand();
+		trace();
 		refresh();
 		continueButton.setAction(dealAction);
 		dealAction.setEnabled(true);
+	}
+
+	/**
+	 * 
+	 */
+	private void trace() {
+		tracer.trace(handler);
 	}
 
 	/**
@@ -300,8 +318,19 @@ public class Main extends JFrame implements AnalyzerListener {
 
 		p1.setLayout(gbl);
 
-		Component comp = new JLabel("Briscola");
 		gbc.weighty = 1;
+		gbl.setConstraints(aiCards[0], gbc);
+		p1.add(aiCards[0]);
+
+		gbl.setConstraints(aiCards[1], gbc);
+		p1.add(aiCards[1]);
+
+		gbc.gridwidth = GridBagConstraints.REMAINDER;
+		gbl.setConstraints(aiCards[2], gbc);
+		p1.add(aiCards[2]);
+
+		Component comp = new JLabel("Briscola");
+		gbc.gridwidth = 1;
 		gbc.anchor = GridBagConstraints.SOUTH;
 		gbl.setConstraints(comp, gbc);
 		p1.add(comp);
@@ -468,6 +497,7 @@ public class Main extends JFrame implements AnalyzerListener {
 		logger.debug("Deal");
 		disableButtons();
 		handler.deal();
+		trace();
 		refresh();
 		if (handler.isPlayerHand()) {
 			enableCardButtons();
@@ -505,17 +535,24 @@ public class Main extends JFrame implements AnalyzerListener {
 		}
 	}
 
-	/** 
-	 * @see
-	 * org.mmarini.briscola.AnalyzerListener#notifyAnalysis(org.mmarini.briscola
-	 * .GameHandler)
+	/**
+	 * @see org.mmarini.briscola.AnalyzerListener#notifyAnalysis(org.mmarini.briscola
+	 *      .GameHandler)
 	 */
 	@Override
 	public void notifyAnalysis(GameHandler handler) {
-		aiWinProb.setValue(handler.getAiWinProbability());
-		aiLossProb.setValue(handler.getAiLossProbability());
-		confident.setSelected(handler.isConfident());
-		thinkLevel.setValue(handler.getLevel());
+		double winProb = handler.getAiWinProbability();
+		double lossProb = handler.getAiLossProbability();
+		boolean handlerConfident = handler.isConfident();
+		int level = handler.getLevel();
+		Card card = handler.getBestCard();
+		logger.debug(
+				"notifyAnalysis: level={}, aiWin={}%, aiLoss={}%, confident={}, card={}",
+				level, winProb * 100, lossProb * 100, handlerConfident, card);
+		confident.setSelected(handlerConfident);
+		aiWinProb.setValue(winProb);
+		aiLossProb.setValue(lossProb);
+		thinkLevel.setValue(level);
 	}
 
 	/**
@@ -542,6 +579,7 @@ public class Main extends JFrame implements AnalyzerListener {
 		Card c = handler.getPlayerCard(i);
 		logger.debug("Player plays {}", c);
 		handler.play(c);
+		trace();
 		refresh();
 		disableButtons();
 		if (handler.isPlayerHand()) {
@@ -573,6 +611,7 @@ public class Main extends JFrame implements AnalyzerListener {
 	 */
 	private void doAnalisys() {
 		handler.think();
+		trace();
 		SwingUtilities.invokeLater(new Runnable() {
 
 			@Override
@@ -610,6 +649,19 @@ public class Main extends JFrame implements AnalyzerListener {
 				applyText(b, null);
 			} else {
 				applyText(b, cards.get(idx));
+			}
+			++idx;
+		}
+
+		cards = handler.getAiCards();
+		idx = 0;
+		for (JLabel b : aiCards) {
+			if (idx >= cards.size()) {
+				applyText(b, null);
+			} else if (debugAiGame) {
+				applyText(b, cards.get(idx));
+			} else {
+				b.setIcon(retro);
 			}
 			++idx;
 		}

@@ -47,13 +47,14 @@ public class NextDealAnimator extends AbstractDealAnimator {
 	 */
 	private Animation addDeaAILastHand(int playerCardId) {
 		long startOffset = computeDuration(1);
-		Animation anim = createChangeDrawable(R.id.deck, R.drawable.empty,
+		Animation anim = createChangeDrawable(R.id.deck, R.drawable.ic_empty,
 				startOffset);
 		Activity activity = getActivity();
 		activity.findViewById(R.id.deck).startAnimation(anim);
 
 		activity.findViewById(R.id.deck).startAnimation(
-				createChangeDrawable(R.id.deck, R.drawable.empty, startOffset));
+				createChangeDrawable(R.id.deck, R.drawable.ic_empty,
+						startOffset));
 
 		addDealAI(R.id.aiCard3, startOffset);
 
@@ -85,7 +86,7 @@ public class NextDealAnimator extends AbstractDealAnimator {
 		int resId = cardDrawableFactory.findResId(card);
 		addDealPlayer(cardViewId, resId, computeDuration(1));
 		getActivity().findViewById(R.id.deck).startAnimation(
-				createChangeDrawable(R.id.deck, R.drawable.empty,
+				createChangeDrawable(R.id.deck, R.drawable.ic_empty,
 						computeDuration(1)));
 		Animation anim = addTrumpToAI(computeDuration(2));
 		return anim;
@@ -105,7 +106,7 @@ public class NextDealAnimator extends AbstractDealAnimator {
 				R.id.aiCard3, 0));
 		set.addAnimation(createVerticalFlipIn(computeDuration(1)));
 		set.addAnimation(createChangeDrawable(R.id.aiCard3,
-				R.drawable.retro_rot, computeDuration(2)));
+				R.drawable.ic_back_rev, computeDuration(2)));
 		set.addAnimation(createVerticalFlipOut(computeDuration(2)));
 		set.setStartOffset(startOffset);
 
@@ -113,7 +114,7 @@ public class NextDealAnimator extends AbstractDealAnimator {
 		activity.findViewById(R.id.aiCard3).startAnimation(set);
 
 		activity.findViewById(R.id.trumpCard).startAnimation(
-				createChangeDrawable(R.id.trumpCard, R.drawable.empty,
+				createChangeDrawable(R.id.trumpCard, R.drawable.ic_empty,
 						startOffset));
 		return set;
 	}
@@ -138,7 +139,7 @@ public class NextDealAnimator extends AbstractDealAnimator {
 		cardView.startAnimation(set);
 
 		getActivity().findViewById(R.id.trumpCard).startAnimation(
-				createChangeDrawable(R.id.trumpCard, R.drawable.empty,
+				createChangeDrawable(R.id.trumpCard, R.drawable.ic_empty,
 						startOffset));
 		return set;
 	}

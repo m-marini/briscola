@@ -56,8 +56,8 @@ public class InitialDealAnimator extends AbstractDealAnimator {
 		shiftIn.setInterpolator(new AccelerateDecelerateInterpolator());
 
 		AnimationSet set = new AnimationSet(false);
-		set.addAnimation(createChangeDrawable(R.id.trumpCard, R.drawable.retro,
-				0));
+		set.addAnimation(createChangeDrawable(R.id.trumpCard,
+				R.drawable.ic_back, 0));
 		set.addAnimation(createBringOnFront(R.id.trumpCard, 1));
 		set.addAnimation(createRotation(90f, 0f, 0));
 		set.addAnimation(shiftOut);
@@ -80,7 +80,7 @@ public class InitialDealAnimator extends AbstractDealAnimator {
 	 */
 	private void hideView(int viewId) {
 		((ImageView) getActivity().findViewById(viewId))
-				.setImageResource(R.drawable.empty);
+				.setImageResource(R.drawable.ic_empty);
 	}
 
 	/**
@@ -109,7 +109,7 @@ public class InitialDealAnimator extends AbstractDealAnimator {
 		}
 		addBriscola(trumpId);
 		ImageView deckView = (ImageView) getActivity().findViewById(R.id.deck);
-		deckView.setImageResource(R.drawable.deck);
+		deckView.setImageResource(R.drawable.ic_deck);
 		hideView(R.id.aiCard1);
 		hideView(R.id.aiCard2);
 		hideView(R.id.aiCard3);

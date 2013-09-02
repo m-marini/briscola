@@ -48,7 +48,7 @@ public class AIMoveAnimator extends AbstractAnimator {
 		AnimationSet animation = new AnimationSet(false);
 		;
 		animation.addAnimation(createChangeDrawable(R.id.aiCard,
-				R.drawable.retro_rot, 0));
+				R.drawable.ic_back_rev, 0));
 		animation.addAnimation(createTranslation(R.id.aiCard, cardId,
 				R.id.aiCard, 0));
 		animation.addAnimation(createVerticalFlipIn(computeDuration(1)));
@@ -63,6 +63,6 @@ public class AIMoveAnimator extends AbstractAnimator {
 		cardView.startAnimation(animation);
 
 		ImageView aiCardFrom = (ImageView) activity.findViewById(cardId);
-		aiCardFrom.setImageResource(R.drawable.empty);
+		aiCardFrom.setImageResource(R.drawable.ic_empty);
 	}
 }
