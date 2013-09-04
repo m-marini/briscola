@@ -24,6 +24,16 @@ public class CardSuitFactory {
 
 	/**
 	 * 
+	 * @return
+	 */
+	public ImageIcon createBack() {
+		URL url = getClass().getResource("/img/ic_back.png");
+		ImageIcon image = new ImageIcon(url);
+		return image;
+	}
+
+	/**
+	 * 
 	 * @param card
 	 * @return
 	 */
@@ -89,15 +99,5 @@ public class CardSuitFactory {
 			map.put(c, image);
 		}
 		return map;
-	}
-
-	/**
-	 * 
-	 * @return
-	 */
-	public ImageIcon createBack() {
-		URL url = getClass().getResource("/img/ic_back.png");
-		ImageIcon image = new ImageIcon(url);
-		return image;
 	}
 }

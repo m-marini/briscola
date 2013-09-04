@@ -32,6 +32,7 @@ public class BriscolaActivityTest extends
 	/**
 	 * @see junit.framework.TestCase#setUp()
 	 */
+	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
 		setActivityInitialTouchMode(false);
@@ -46,11 +47,33 @@ public class BriscolaActivityTest extends
 	 * Test method for
 	 * {@link org.mmarini.briscola.app.BriscolaActivity#onCreateOptionsMenu(android.view.Menu)}
 	 * .
+	 * 
+	 * @throws Throwable
 	 */
-	public void testOnStart() {
+	public void testLastHand() throws Throwable {
+
+		instr.waitForIdleSync();
+		runTestOnUiThread(new Runnable() {
+
+			@Override
+			public void run() {
+				activity.restoreHandlerState(STATE1);
+			}
+		});
 		instr.waitForIdleSync();
 		TextView v = (TextView) activity.findViewById(R.id.deckCount);
-		assertEquals("Carte: 0", v.getText());
+		assertEquals("Carte: 1", v.getText());
+
+		runTestOnUiThread(new Runnable() {
+
+			@Override
+			public void run() {
+				View iv = activity.findViewById(R.id.playerCard1);
+				activity.movePlayerCard(iv);
+			}
+		});
+		instr.waitForIdleSync();
+		Thread.sleep(10000);
 	}
 
 	/**
@@ -115,32 +138,10 @@ public class BriscolaActivityTest extends
 	 * Test method for
 	 * {@link org.mmarini.briscola.app.BriscolaActivity#onCreateOptionsMenu(android.view.Menu)}
 	 * .
-	 * 
-	 * @throws Throwable
 	 */
-	public void testLastHand() throws Throwable {
-
-		instr.waitForIdleSync();
-		runTestOnUiThread(new Runnable() {
-
-			@Override
-			public void run() {
-				activity.restoreHandlerState(STATE1);
-			}
-		});
+	public void testOnStart() {
 		instr.waitForIdleSync();
 		TextView v = (TextView) activity.findViewById(R.id.deckCount);
-		assertEquals("Carte: 1", v.getText());
-
-		runTestOnUiThread(new Runnable() {
-
-			@Override
-			public void run() {
-				View iv = activity.findViewById(R.id.playerCard1);
-				activity.movePlayerCard(iv);
-			}
-		});
-		instr.waitForIdleSync();
-		Thread.sleep(10000);
+		assertEquals("Carte: 0", v.getText());
 	}
 }

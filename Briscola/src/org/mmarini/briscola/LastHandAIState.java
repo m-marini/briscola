@@ -19,6 +19,15 @@ public class LastHandAIState extends AbstractVirtualGameState {
 	 * 
 	 */
 	public LastHandAIState() {
+		super();
+	}
+
+	/**
+	 * @param state
+	 */
+	public LastHandAIState(AbstractVirtualGameState state) {
+		super(state);
+		clearDeck();
 	}
 
 	/**
@@ -30,8 +39,8 @@ public class LastHandAIState extends AbstractVirtualGameState {
 			StrategySearchContext strategySearchContext)
 			throws InterruptedException {
 		int aiScore = getAiScore();
-		Card aiCard = getAiCards()[0];
-		Card playerCard = getPlayerCards()[0];
+		Card aiCard = getAiCards().get(0);
+		Card playerCard = getPlayerCards().get(0);
 		if (aiCard.wins(playerCard, getTrump())) {
 			aiScore += computeScore(aiCard, playerCard);
 		}

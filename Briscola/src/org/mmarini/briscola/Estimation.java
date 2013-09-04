@@ -20,6 +20,13 @@ public class Estimation {
 	}
 
 	/**
+	 * @return the win probability
+	 */
+	public double getAiWinProb() {
+		return aiWinProb;
+	}
+
+	/**
 	 * @return the bestCard
 	 */
 	public Card getBestCard() {
@@ -34,17 +41,18 @@ public class Estimation {
 	}
 
 	/**
-	 * @return the win probability
-	 */
-	public double getAiWinProb() {
-		return aiWinProb;
-	}
-
-	/**
 	 * @return the confident
 	 */
 	public boolean isConfident() {
 		return confident;
+	}
+
+	/**
+	 * @param probability
+	 *            the win probability to set
+	 */
+	public void setAiWinProb(double probability) {
+		this.aiWinProb = probability;
 	}
 
 	/**
@@ -69,14 +77,6 @@ public class Estimation {
 	 */
 	public void setPlayerWinProb(double lossProbability) {
 		this.playerWinProb = lossProbability;
-	}
-
-	/**
-	 * @param probability
-	 *            the win probability to set
-	 */
-	public void setAiWinProb(double probability) {
-		this.aiWinProb = probability;
 	}
 
 	/**

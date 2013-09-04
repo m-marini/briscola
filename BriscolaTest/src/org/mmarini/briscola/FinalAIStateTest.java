@@ -42,7 +42,6 @@ public class FinalAIStateTest {
 		ctx.setTimeout(1000000);
 		estimation = new Estimation();
 		state = new FinalAIState();
-		state.setDeckCards();
 		state.setTrump(BRISCOLA);
 	}
 
@@ -57,8 +56,12 @@ public class FinalAIStateTest {
 	public void testEstimate1() throws InterruptedException {
 		state.setAiScore(40);
 		state.setPlayerScore(44);
-		state.setAiCards(ASSO_COPPE, ASSO_DENARI);
-		state.setPlayerCards(RE_SPADE, TRE_DENARI);
+
+		state.addToAiCards(ASSO_COPPE);
+		state.addToAiCards(ASSO_DENARI);
+
+		state.addToPlayerCards(RE_SPADE);
+		state.addToPlayerCards(TRE_DENARI);
 		ctx.estimate(estimation, state);
 
 		assertEquals(ASSO_COPPE, estimation.getBestCard());
@@ -77,8 +80,10 @@ public class FinalAIStateTest {
 	public void testEstimate1i() throws InterruptedException {
 		state.setAiScore(40);
 		state.setPlayerScore(44);
-		state.setAiCards(ASSO_DENARI, ASSO_COPPE);
-		state.setPlayerCards(RE_SPADE, TRE_DENARI);
+		state.addToAiCards(ASSO_DENARI);
+		state.addToAiCards(ASSO_COPPE);
+		state.addToPlayerCards(RE_SPADE);
+		state.addToPlayerCards(TRE_DENARI);
 		ctx.estimate(estimation, state);
 
 		assertEquals(ASSO_COPPE, estimation.getBestCard());
@@ -97,8 +102,12 @@ public class FinalAIStateTest {
 	public void testEstimate2_1() throws InterruptedException {
 		state.setAiScore(48);
 		state.setPlayerScore(22);
-		state.setAiCards(TRE_DENARI, ASSO_COPPE, RE_DENARI);
-		state.setPlayerCards(ASSO_SPADE, ASSO_DENARI, CAVALLO_COPPE);
+		state.addToAiCards(TRE_DENARI);
+		state.addToAiCards(ASSO_COPPE);
+		state.addToAiCards(RE_DENARI);
+		state.addToPlayerCards(ASSO_SPADE);
+		state.addToPlayerCards(ASSO_DENARI);
+		state.addToPlayerCards(CAVALLO_COPPE);
 		ctx.estimate(estimation, state);
 
 		assertEquals(TRE_DENARI, estimation.getBestCard());
@@ -117,8 +126,12 @@ public class FinalAIStateTest {
 	public void testEstimate2_2() throws InterruptedException {
 		state.setAiScore(48);
 		state.setPlayerScore(22);
-		state.setAiCards(ASSO_COPPE, TRE_DENARI, RE_DENARI);
-		state.setPlayerCards(ASSO_SPADE, ASSO_DENARI, CAVALLO_COPPE);
+		state.addToAiCards(ASSO_COPPE);
+		state.addToAiCards(TRE_DENARI);
+		state.addToAiCards(RE_DENARI);
+		state.addToPlayerCards(ASSO_SPADE);
+		state.addToPlayerCards(ASSO_DENARI);
+		state.addToPlayerCards(CAVALLO_COPPE);
 		ctx.estimate(estimation, state);
 
 		assertEquals(TRE_DENARI, estimation.getBestCard());
@@ -137,8 +150,12 @@ public class FinalAIStateTest {
 	public void testEstimate2_3() throws InterruptedException {
 		state.setAiScore(48);
 		state.setPlayerScore(22);
-		state.setAiCards(RE_DENARI, ASSO_COPPE, TRE_DENARI);
-		state.setPlayerCards(ASSO_SPADE, ASSO_DENARI, CAVALLO_COPPE);
+		state.addToAiCards(RE_DENARI);
+		state.addToAiCards(ASSO_COPPE);
+		state.addToAiCards(TRE_DENARI);
+		state.addToPlayerCards(ASSO_SPADE);
+		state.addToPlayerCards(ASSO_DENARI);
+		state.addToPlayerCards(CAVALLO_COPPE);
 		ctx.estimate(estimation, state);
 
 		assertEquals(TRE_DENARI, estimation.getBestCard());

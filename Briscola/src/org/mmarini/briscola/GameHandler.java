@@ -53,7 +53,7 @@ public class GameHandler {
 	private int aiWonGame;
 	private long timeout;
 	private boolean confident;
-	private double aiLossProbability;
+	private double playerWinProbability;
 	private double aiWinProbability;
 	private int level;
 	private GameStatus status;
@@ -76,24 +76,41 @@ public class GameHandler {
 	/**
 	 * 
 	 */
-	private void analise() {
+	public void analyze() {
+		logger.debug("Thinking ...");
+		level = 0;
+		aiWinProbability = 0;
+		playerWinProbability = 0;
+		confident = false;
+		if (aiCards.size() == 1) {
+			playAi(aiCards.get(0));
+		} else {
+			analyzeTreeGame();
+		}
+	}
+
+	/**
+	 * 
+	 */
+	private void analyzeTreeGame() {
 		AbstractGameState state = createState();
 		Estimation estimation = new Estimation();
 		bestCard = null;
 		ctx.setTimeout(timeout);
-		int maxLevel = 0;
+		int analizedLevel = 0;
 		try {
 			do {
-				ctx.setMaxDeep(maxLevel);
+				ctx.setMaxDeep(analizedLevel);
 				ctx.estimate(estimation, state);
 				bestCard = estimation.getBestCard();
 				aiWinProbability = estimation.getAiWinProb();
-				aiLossProbability = estimation.getPlayerWinProb();
+				playerWinProbability = estimation.getPlayerWinProb();
 				confident = estimation.isConfident();
-				level = maxLevel;
-				if (analyzerListener != null)
+				level = analizedLevel;
+				if (analyzerListener != null) {
 					analyzerListener.notifyAnalysis(this);
-				++maxLevel;
+				}
+				++analizedLevel;
 			} while (!estimation.isConfident());
 		} catch (InterruptedException e) {
 		}
@@ -211,33 +228,31 @@ public class GameHandler {
 		if (playerHand) {
 			if (deck.isEmpty()) {
 				FinalPlayerMidState state = new FinalPlayerMidState();
-				state.setDeckCards();
-				state.setPlayerCards(playerCards.toArray(new Card[0]));
+				state.addToPlayerCards(playerCards);
 				state.setPlayerCard(playerCard);
 				s = state;
 			} else {
-				List<Card> newDeck = new ArrayList<Card>(deck);
-				newDeck.addAll(playerCards);
 				GamePlayerState state = new GamePlayerState();
-				state.setDeckCards(newDeck.toArray(new Card[0]));
+				state.addToDeckCards(deck);
+				state.addToDeckCards(playerCards);
 				state.setPlayerCard(playerCard);
 				s = state;
 			}
 		} else {
 			if (deck.isEmpty()) {
 				FinalAIState state = new FinalAIState();
-				state.setPlayerCards(playerCards.toArray(new Card[0]));
-				state.setDeckCards();
+				state.addToPlayerCards(playerCards);
 				s = state;
 			} else {
 				List<Card> newDeck = new ArrayList<Card>(deck);
 				newDeck.addAll(playerCards);
 				GameAIState state = new GameAIState();
-				state.setDeckCards(newDeck.toArray(new Card[0]));
+				state.addToDeckCards(deck);
+				state.addToDeckCards(playerCards);
 				s = state;
 			}
 		}
-		s.setAiCards(aiCards.toArray(new Card[0]));
+		s.addToAiCards(aiCards);
 		s.setAiScore(aiScore);
 		s.setPlayerScore(playerScore);
 		s.setTrump(trump);
@@ -299,11 +314,10 @@ public class GameHandler {
 	}
 
 	/**
-	 * 
-	 * @return
+	 * @return the aiCards
 	 */
-	public double getAiLossProbability() {
-		return aiLossProbability;
+	public List<Card> getAiCards() {
+		return aiCards;
 	}
 
 	/**
@@ -327,6 +341,13 @@ public class GameHandler {
 	 */
 	public int getAiWonGame() {
 		return aiWonGame;
+	}
+
+	/**
+	 * @return the bestCard
+	 */
+	public Card getBestCard() {
+		return bestCard;
 	}
 
 	/**
@@ -374,6 +395,14 @@ public class GameHandler {
 	 */
 	public int getPlayerScore() {
 		return playerScore;
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public double getPlayerWinProbability() {
+		return playerWinProbability;
 	}
 
 	/**
@@ -445,6 +474,13 @@ public class GameHandler {
 	}
 
 	/**
+	 * @return the playerFirstHand
+	 */
+	public boolean isPlayerFirstHand() {
+		return playerFirstHand;
+	}
+
+	/**
 	 * 
 	 * @return
 	 */
@@ -481,12 +517,36 @@ public class GameHandler {
 	}
 
 	/**
+	 * @param aiWonGame
+	 *            the aiWonGame to set
+	 */
+	public void setAiWonGame(int aiWonGame) {
+		this.aiWonGame = aiWonGame;
+	}
+
+	/**
 	 * s
 	 * 
 	 * @param listener
 	 */
 	public void setAnalyzerListener(AnalyzerListener listener) {
 		analyzerListener = listener;
+	}
+
+	/**
+	 * @param playerFirstHand
+	 *            the playerFirstHand to set
+	 */
+	public void setPlayerFirstHand(boolean playerFirstHand) {
+		this.playerFirstHand = playerFirstHand;
+	}
+
+	/**
+	 * @param playerWonGame
+	 *            the playerWonGame to set
+	 */
+	public void setPlayerWonGame(int playerWonGame) {
+		this.playerWonGame = playerWonGame;
 	}
 
 	/**
@@ -518,66 +578,5 @@ public class GameHandler {
 	 */
 	public void stopAnalysis() {
 		ctx.setTimeout(0);
-	}
-
-	/**
-	 * 
-	 */
-	public void think() {
-		logger.debug("Thinking ...");
-		level = 0;
-		aiWinProbability = 0;
-		aiLossProbability = 0;
-		confident = false;
-		if (aiCards.size() == 1) {
-			playAi(aiCards.get(0));
-		} else {
-			analise();
-		}
-	}
-
-	/**
-	 * @param playerWonGame
-	 *            the playerWonGame to set
-	 */
-	public void setPlayerWonGame(int playerWonGame) {
-		this.playerWonGame = playerWonGame;
-	}
-
-	/**
-	 * @param aiWonGame
-	 *            the aiWonGame to set
-	 */
-	public void setAiWonGame(int aiWonGame) {
-		this.aiWonGame = aiWonGame;
-	}
-
-	/**
-	 * @return the playerFirstHand
-	 */
-	public boolean isPlayerFirstHand() {
-		return playerFirstHand;
-	}
-
-	/**
-	 * @param playerFirstHand
-	 *            the playerFirstHand to set
-	 */
-	public void setPlayerFirstHand(boolean playerFirstHand) {
-		this.playerFirstHand = playerFirstHand;
-	}
-
-	/**
-	 * @return the aiCards
-	 */
-	public List<Card> getAiCards() {
-		return aiCards;
-	}
-
-	/**
-	 * @return the bestCard
-	 */
-	public Card getBestCard() {
-		return bestCard;
 	}
 }

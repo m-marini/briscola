@@ -211,13 +211,6 @@ public class Main extends JFrame implements AnalyzerListener {
 	/**
 	 * 
 	 */
-	private void trace() {
-		tracer.trace(handler);
-	}
-
-	/**
-	 * 
-	 */
 	private void createActions() {
 		playerCards[0].addActionListener(new ActionListener() {
 
@@ -549,6 +542,21 @@ public class Main extends JFrame implements AnalyzerListener {
 	/**
 	 * 
 	 */
+	private void doAnalisys() {
+		handler.analyze();
+		trace();
+		SwingUtilities.invokeLater(new Runnable() {
+
+			@Override
+			public void run() {
+				notifyCardPlayed();
+			}
+		});
+	}
+
+	/**
+	 * 
+	 */
 	private void enableCardButtons() {
 		int n = handler.getPlayerCards().size();
 		for (JButton b : playerCards) {
@@ -567,7 +575,7 @@ public class Main extends JFrame implements AnalyzerListener {
 	@Override
 	public void notifyAnalysis(GameHandler handler) {
 		double winProb = handler.getAiWinProbability();
-		double lossProb = handler.getAiLossProbability();
+		double lossProb = handler.getPlayerWinProbability();
 		boolean handlerConfident = handler.isConfident();
 		int level = handler.getLevel();
 		Card card = handler.getBestCard();
@@ -621,34 +629,6 @@ public class Main extends JFrame implements AnalyzerListener {
 	/**
 	 * 
 	 */
-	private void startAnalysys() {
-		new Thread() {
-			@Override
-			public void run() {
-				doAnalisys();
-			}
-
-		}.start();
-	}
-
-	/**
-	 * 
-	 */
-	private void doAnalisys() {
-		handler.think();
-		trace();
-		SwingUtilities.invokeLater(new Runnable() {
-
-			@Override
-			public void run() {
-				notifyCardPlayed();
-			}
-		});
-	}
-
-	/**
-	 * 
-	 */
 	private void refresh() {
 		playerScore.setValue(handler.getPlayerScore());
 		aiScore.setValue(handler.getAiScore());
@@ -663,7 +643,7 @@ public class Main extends JFrame implements AnalyzerListener {
 		applyText(aiCard, handler.getAiCard());
 
 		aiWinProb.setValue(handler.getAiWinProbability() * 61);
-		aiLossProb.setValue(handler.getAiLossProbability() * 61);
+		aiLossProb.setValue(handler.getPlayerWinProbability() * 61);
 		confident.setSelected(handler.isConfident());
 		thinkLevel.setValue(handler.getLevel());
 
@@ -695,7 +675,27 @@ public class Main extends JFrame implements AnalyzerListener {
 	/**
 	 * 
 	 */
+	private void startAnalysys() {
+		new Thread() {
+			@Override
+			public void run() {
+				doAnalisys();
+			}
+
+		}.start();
+	}
+
+	/**
+	 * 
+	 */
 	private void stop() {
 		handler.stopAnalysis();
+	}
+
+	/**
+	 * 
+	 */
+	private void trace() {
+		tracer.trace(handler);
 	}
 }

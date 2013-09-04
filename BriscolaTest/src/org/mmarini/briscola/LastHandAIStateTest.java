@@ -37,7 +37,6 @@ public class LastHandAIStateTest {
 		ctx.setTimeout(1000000);
 		estimation = new Estimation();
 		state = new LastHandAIState();
-		state.setDeckCards();
 		state.setTrump(DUE_DENARI);
 	}
 
@@ -52,8 +51,8 @@ public class LastHandAIStateTest {
 	public void testEstimateDraw1() throws InterruptedException {
 		state.setPlayerScore(60);
 		state.setAiScore(60);
-		state.setPlayerCards(QUATTRO_COPPE);
-		state.setAiCards(DUE_COPPE);
+		state.addToPlayerCards(QUATTRO_COPPE);
+		state.addToAiCards(DUE_COPPE);
 
 		ctx.estimate(estimation, state);
 		assertTrue(estimation.isConfident());
@@ -72,8 +71,8 @@ public class LastHandAIStateTest {
 	public void testEstimateDraw2() throws InterruptedException {
 		state.setPlayerScore(60);
 		state.setAiScore(60);
-		state.setAiCards(QUATTRO_COPPE);
-		state.setPlayerCards(DUE_COPPE);
+		state.addToAiCards(QUATTRO_COPPE);
+		state.addToPlayerCards(DUE_COPPE);
 
 		ctx.estimate(estimation, state);
 		assertTrue(estimation.isConfident());
@@ -92,8 +91,8 @@ public class LastHandAIStateTest {
 	public void testEstimateLoss() throws InterruptedException {
 		state.setPlayerScore(59);
 		state.setAiScore(59);
-		state.setPlayerCards(FANTE_DENARI);
-		state.setAiCards(DUE_COPPE);
+		state.addToPlayerCards(FANTE_DENARI);
+		state.addToAiCards(DUE_COPPE);
 
 		ctx.estimate(estimation, state);
 		assertTrue(estimation.isConfident());
@@ -112,8 +111,8 @@ public class LastHandAIStateTest {
 	public void testEstimateWin() throws InterruptedException {
 		state.setPlayerScore(59);
 		state.setAiScore(59);
-		state.setAiCards(FANTE_DENARI);
-		state.setPlayerCards(DUE_COPPE);
+		state.addToAiCards(FANTE_DENARI);
+		state.addToPlayerCards(DUE_COPPE);
 
 		ctx.estimate(estimation, state);
 		assertTrue(estimation.isConfident());

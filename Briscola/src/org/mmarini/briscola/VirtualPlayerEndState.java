@@ -3,6 +3,8 @@
  */
 package org.mmarini.briscola;
 
+import java.util.List;
+
 /**
  * Game state in case the player moves.
  * <p>
@@ -22,6 +24,13 @@ public class VirtualPlayerEndState extends AbstractVirtualGameState {
 	}
 
 	/**
+	 * @param state
+	 */
+	public VirtualPlayerEndState(AbstractVirtualGameState state) {
+		super(state);
+	}
+
+	/**
 	 * @see org.mmarini.briscola.AbstractGameState#estimate(org.mmarini.briscola.
 	 *      Estimation, org.mmarini.briscola.StrategySearchContext)
 	 */
@@ -33,22 +42,16 @@ public class VirtualPlayerEndState extends AbstractVirtualGameState {
 		estimation.setPlayerWinProb(0.);
 		int aiScore = getAiScore();
 		int playerScore = getPlayerScore();
-		Card[] deckCards = getDeckCards();
+		List<Card> deckCards = getDeckCards();
 		if (aiScore > HALF_SCORE) {
 			estimation.setAiWinProb(1.);
 		} else if (playerScore > HALF_SCORE) {
 			estimation.setPlayerWinProb(1.);
-		} else if (deckCards.length == 1) {
+		} else if (deckCards.size() == 1) {
 			// valuta direttamente la finale di partita
-			Card[] aiCards = createAndAdd(getAiCards(), getTrump());
-			Card[] playerCards = createAndAdd(getPlayerCards(), deckCards[0]);
-			FinalPlayerStartState state = new FinalPlayerStartState();
-			state.setDeckCards();
-			state.setAiCards(aiCards);
-			state.setAiScore(getAiScore());
-			state.setPlayerCards(playerCards);
-			state.setPlayerScore(getPlayerScore());
-			state.setTrump(getTrump());
+			FinalPlayerStartState state = new FinalPlayerStartState(this);
+			state.addToAiCards(getTrump());
+			state.addToPlayerCards(deckCards.get(0));
 			state.estimate(estimation, ctx);
 		} else if (ctx.isSearchingDeeper()) {
 			estimateNextStates(estimation, ctx);
@@ -71,31 +74,26 @@ public class VirtualPlayerEndState extends AbstractVirtualGameState {
 		/*
 		 * Valuta il livello successivo.
 		 */
-		Card[] deckCards = getDeckCards();
-		int n = deckCards.length;
+		List<Card> deckCards = getDeckCards();
+		int n = deckCards.size();
 		double win = 0;
 		double loss = 0;
 		boolean confident = true;
 		int m = n * (n - 1);
 		for (int i = 0; i < n; ++i) {
-			Card aiCard = deckCards[i];
+			Card aiCard = deckCards.get(i);
 			for (int j = 0; j < n - 1; ++j) {
 				Card playerCard;
 				if (j < i)
-					playerCard = deckCards[j];
+					playerCard = deckCards.get(j);
 				else
-					playerCard = deckCards[j + 1];
-				Card[] aiCards = createAndAdd(getAiCards(), aiCard);
-				Card[] playerCards = createAndAdd(getPlayerCards(), playerCard);
-				Card[] deckCards1 = createAndRemove(getDeckCards(), aiCard,
-						playerCard);
-				VirtualPlayerStartState state = new VirtualPlayerStartState();
-				state.setTrump(getTrump());
-				state.setDeckCards(deckCards1);
-				state.setAiCards(aiCards);
-				state.setAiScore(getAiScore());
-				state.setPlayerCards(playerCards);
-				state.setPlayerScore(getPlayerScore());
+					playerCard = deckCards.get(j + 1);
+				VirtualPlayerStartState state = new VirtualPlayerStartState(
+						this);
+				state.removeFromDeckCards(playerCard);
+				state.removeFromDeckCards(aiCard);
+				state.addToAiCards(aiCard);
+				state.addToPlayerCards(playerCard);
 				state.estimate(estimation, ctx);
 
 				confident &= estimation.isConfident();

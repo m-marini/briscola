@@ -51,6 +51,7 @@ import android.widget.TextView;
  * 
  */
 public class BriscolaActivity extends Activity {
+	private static final String TRACE_FOLDER_NAME = "Briscola";
 	private static final String TRACE_FILENAME = "briscola.trace";
 	private static final String BRISCOLA_FILE_SEPARATOR = ",";
 	private static final String BRISCOLA_FILE = "briscola.txt";
@@ -58,7 +59,7 @@ public class BriscolaActivity extends Activity {
 	private static final int THINK_DURATION = 1000;
 	private static final String TEST_STATE = "aiWonGame=0;playerCards=18,10,11;playerHand=true;playerWonGame=0;aiScore=60;playerFirstHand=false;aiCards=0,1,2;status=PLAYER_MOVE;"
 			+ "deck=20;" + "trump=8;playerScore=40;";
-	private static final boolean TRACE_ENABLED = false;
+	private static final boolean TRACE_ENABLED = true;
 
 	private static Logger logger = LoggerFactory
 			.getLogger(BriscolaActivity.class);
@@ -239,7 +240,7 @@ public class BriscolaActivity extends Activity {
 	 */
 	private void analyze() {
 		logger.debug("Running analisys ...");
-		handler.think();
+		handler.analyze();
 		trace();
 		logger.debug("Analisys completed.");
 	}
@@ -359,6 +360,36 @@ public class BriscolaActivity extends Activity {
 
 	/**
 	 * 
+	 */
+	private void loadValues() {
+		FileInputStream stream;
+		try {
+			stream = openFileInput(BRISCOLA_FILE);
+			try {
+				BufferedReader in = new BufferedReader(new InputStreamReader(
+						stream));
+				String line = in.readLine();
+				logger.debug("loadValues: {}", line);
+				if (line != null) {
+					String[] args = line.split(BRISCOLA_FILE_SEPARATOR);
+					if (args.length >= 0)
+						handler.setPlayerWonGame(Integer.parseInt(args[0]));
+					if (args.length >= 1)
+						handler.setAiWonGame(Integer.parseInt(args[1]));
+					if (args.length >= 2)
+						handler.setPlayerFirstHand(Boolean
+								.parseBoolean(args[2]));
+				}
+			} finally {
+				stream.close();
+			}
+		} catch (IOException e) {
+			logger.error("Error reading file " + BRISCOLA_FILE, e);
+		}
+	}
+
+	/**
+	 * 
 	 * @param view
 	 */
 	void movePlayerCard(View view) {
@@ -445,80 +476,6 @@ public class BriscolaActivity extends Activity {
 			paused = false;
 		}
 		loadValues();
-
-		File folder = Environment
-				.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-		folder = new File(folder.getParentFile(), "Briscola");
-		folder.mkdir();
-		logger.debug("File: {} {}", folder.getAbsolutePath(),
-				folder.isDirectory());
-
-		listFiles("/mnt/sdcard");
-		listFiles("/mnt/sdcard/external_sd");
-	}
-
-	private void listFiles(String path) {
-		File folder = new File(path);
-		for (File file : folder.listFiles()) {
-			logger.debug("File: {}", file.getAbsolutePath());
-		}
-	}
-
-	/**
-	 * 
-	 */
-	private void loadValues() {
-		FileInputStream stream;
-		try {
-			stream = openFileInput(BRISCOLA_FILE);
-			try {
-				BufferedReader in = new BufferedReader(new InputStreamReader(
-						stream));
-				String line = in.readLine();
-				logger.debug("loadValues: {}", line);
-				if (line != null) {
-					String[] args = line.split(BRISCOLA_FILE_SEPARATOR);
-					if (args.length >= 0)
-						handler.setPlayerWonGame(Integer.parseInt(args[0]));
-					if (args.length >= 1)
-						handler.setAiWonGame(Integer.parseInt(args[1]));
-					if (args.length >= 2)
-						handler.setPlayerFirstHand(Boolean
-								.parseBoolean(args[2]));
-				}
-			} finally {
-				stream.close();
-			}
-		} catch (IOException e) {
-			logger.error("Error reading file " + BRISCOLA_FILE, e);
-		}
-	}
-
-	/**
-	 * 
-	 */
-	private void saveValues() {
-		FileOutputStream stream;
-		try {
-			stream = openFileOutput(BRISCOLA_FILE, MODE_PRIVATE);
-			try {
-				StringBuilder line = new StringBuilder();
-				line.append(handler.getPlayerWonGame())
-						.append(BRISCOLA_FILE_SEPARATOR)
-						.append(handler.getAiWonGame())
-						.append(BRISCOLA_FILE_SEPARATOR)
-						.append(handler.isPlayerFirstHand());
-
-				PrintWriter out = new PrintWriter(stream);
-				out.println(line);
-				out.close();
-				logger.debug("saveValues: {}", line);
-			} finally {
-				stream.close();
-			}
-		} catch (IOException e) {
-			logger.error("Error writting file " + BRISCOLA_FILE, e);
-		}
 	}
 
 	/**
@@ -597,42 +554,6 @@ public class BriscolaActivity extends Activity {
 		// if (analysisTask != null)
 		// analysisTask.cancel(true);
 		paused = true;
-	}
-
-	/**
-	 * 
-	 */
-	private void startResumeDialog() {
-		Builder builder = new Builder(this);
-		builder.setMessage(R.string.resume_message);
-		builder.setPositiveButton(R.string.yes_text, new OnClickListener() {
-
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				resumeGame();
-			}
-		});
-		builder.setNegativeButton(R.string.no_text, new OnClickListener() {
-
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				BriscolaActivity.this.finish();
-			}
-		});
-		AlertDialog dialog = builder.create();
-		dialog.show();
-	}
-
-	/**
-	 * 
-	 */
-	private void resumeGame() {
-		logger.debug("resume");
-		paused = false;
-		reloadSettings();
-		refreshViews();
-		refreshData();
-		restoreButtons();
 	}
 
 	/**
@@ -827,6 +748,25 @@ public class BriscolaActivity extends Activity {
 
 	/**
 	 * 
+	 */
+	private void restoreButtons() {
+		logger.debug("restoreButtons");
+		disableButtons();
+		switch (handler.getStatus()) {
+		case PLAYER_MOVE:
+			enableCardButtons();
+			break;
+		case CLOSE_HAND:
+			enableDeal(dealNextListener);
+			break;
+		default:
+			enableDeal(dealInitListener);
+			break;
+		}
+	}
+
+	/**
+	 * 
 	 * @param savedInstanceState
 	 */
 	private void restoreHandler(Bundle savedInstanceState) {
@@ -850,30 +790,50 @@ public class BriscolaActivity extends Activity {
 
 	/**
 	 * 
-	 */
-	private void restoreButtons() {
-		logger.debug("restoreButtons");
-		disableButtons();
-		switch (handler.getStatus()) {
-		case PLAYER_MOVE:
-			enableCardButtons();
-			break;
-		case CLOSE_HAND:
-			enableDeal(dealNextListener);
-			break;
-		default:
-			enableDeal(dealInitListener);
-			break;
-		}
-	}
-
-	/**
-	 * 
 	 * @param state
 	 */
 	void restoreHandlerState(String state) {
 		gameStateBackUp = state;
 		restoreHandlerState();
+	}
+
+	/**
+	 * 
+	 */
+	private void resumeGame() {
+		logger.debug("resume");
+		paused = false;
+		reloadSettings();
+		refreshViews();
+		refreshData();
+		restoreButtons();
+	}
+
+	/**
+	 * 
+	 */
+	private void saveValues() {
+		FileOutputStream stream;
+		try {
+			stream = openFileOutput(BRISCOLA_FILE, MODE_PRIVATE);
+			try {
+				StringBuilder line = new StringBuilder();
+				line.append(handler.getPlayerWonGame())
+						.append(BRISCOLA_FILE_SEPARATOR)
+						.append(handler.getAiWonGame())
+						.append(BRISCOLA_FILE_SEPARATOR)
+						.append(handler.isPlayerFirstHand());
+
+				PrintWriter out = new PrintWriter(stream);
+				out.println(line);
+				out.close();
+				logger.debug("saveValues: {}", line);
+			} finally {
+				stream.close();
+			}
+		} catch (IOException e) {
+			logger.error("Error writting file " + BRISCOLA_FILE, e);
+		}
 	}
 
 	/**
@@ -907,18 +867,41 @@ public class BriscolaActivity extends Activity {
 	/**
 	 * 
 	 */
+	private void startResumeDialog() {
+		Builder builder = new Builder(this);
+		builder.setMessage(R.string.resume_message);
+		builder.setPositiveButton(R.string.yes_text, new OnClickListener() {
+
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				resumeGame();
+			}
+		});
+		builder.setNegativeButton(R.string.no_text, new OnClickListener() {
+
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				BriscolaActivity.this.finish();
+			}
+		});
+		AlertDialog dialog = builder.create();
+		dialog.show();
+	}
+
+	/**
+	 * 
+	 */
 	private void trace() {
 		if (TRACE_ENABLED
 				&& Environment.MEDIA_MOUNTED.equals(Environment
 						.getExternalStorageState())) {
 			File folder = Environment
-					.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-			File file = new File(folder, TRACE_FILENAME);
-			logger.debug("external file: {}", file);
-
+					.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+			folder = new File(folder.getParentFile(), TRACE_FOLDER_NAME);
 			folder.mkdirs();
+			File file = new File(folder, TRACE_FILENAME);
 			try {
-				FileWriter fo = new FileWriter(file);
+				FileWriter fo = new FileWriter(file, true);
 				try {
 					PrintWriter out = new PrintWriter(fo);
 					out.print(new Date());

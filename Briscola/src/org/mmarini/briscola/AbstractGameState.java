@@ -3,7 +3,9 @@
  */
 package org.mmarini.briscola;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * @author US00852
@@ -13,18 +15,6 @@ public abstract class AbstractGameState implements Cloneable {
 
 	public static final int MAX_SCORE = 120;
 	public static final int HALF_SCORE = MAX_SCORE / 2;
-
-	/**
-	 * 
-	 * @param list
-	 * @param cards
-	 * @return
-	 */
-	protected static Card[] createAndAdd(Card[] list, Card... cards) {
-		Card[] result = Arrays.copyOf(list, list.length + cards.length);
-		System.arraycopy(cards, 0, result, list.length, cards.length);
-		return result;
-	}
 
 	/**
 	 * 
@@ -50,27 +40,9 @@ public abstract class AbstractGameState implements Cloneable {
 		return result;
 	}
 
-	/**
-	 * 
-	 * @param list
-	 * @param cards
-	 * @return
-	 */
-	protected static int[] createAndReplace(int[] list, int card, int newCard) {
-		int[] result = new int[list.length];
-		for (int i = 0; i < list.length; i++) {
-			if (result[i] == card) {
-				result[i] = newCard;
-			} else {
-				result[i] = list[i];
-			}
-		}
-		return result;
-	}
-
-	private Card[] aiCards;
+	private List<Card> deckCards;
+	private List<Card> aiCards;
 	private Card trump;
-	private Card[] deckCards;
 	private int aiScore;
 	private int playerScore;
 
@@ -78,6 +50,53 @@ public abstract class AbstractGameState implements Cloneable {
 	 * 
 	 */
 	protected AbstractGameState() {
+		aiCards = new ArrayList<Card>(3);
+		deckCards = new ArrayList<Card>(40);
+	}
+
+	/**
+	 * 
+	 */
+	protected AbstractGameState(AbstractGameState state) {
+		this();
+		aiCards.addAll(state.aiCards);
+		deckCards.addAll(state.deckCards);
+		trump = state.trump;
+		aiScore = state.aiScore;
+		playerScore = state.playerScore;
+	}
+
+	/**
+	 * 
+	 * @param card
+	 * @return
+	 */
+	protected void addToAiCards(Card card) {
+		aiCards.add(card);
+	}
+
+	/**
+	 * 
+	 * @param cards
+	 * @return
+	 */
+	protected void addToAiCards(Collection<Card> cards) {
+		aiCards.addAll(cards);
+	}
+
+	/**
+	 * 
+	 * @param cards
+	 */
+	protected void addToDeckCards(Collection<Card> cards) {
+		deckCards.addAll(cards);
+	}
+
+	/**
+	 * 
+	 */
+	protected void clearDeck() {
+		deckCards.clear();
 	}
 
 	/**
@@ -101,23 +120,9 @@ public abstract class AbstractGameState implements Cloneable {
 			throws InterruptedException;
 
 	/**
-	 * @return the deckCards
-	 */
-	protected Card[] getDeckCards() {
-		return deckCards;
-	}
-
-	/**
-	 * @return the oppositeScore
-	 */
-	public int getPlayerScore() {
-		return playerScore;
-	}
-
-	/**
 	 * @return the playerCards
 	 */
-	protected Card[] getAiCards() {
+	protected List<Card> getAiCards() {
 		return aiCards;
 	}
 
@@ -129,6 +134,20 @@ public abstract class AbstractGameState implements Cloneable {
 	}
 
 	/**
+	 * @return the deckCards
+	 */
+	protected List<Card> getDeckCards() {
+		return deckCards;
+	}
+
+	/**
+	 * @return the oppositeScore
+	 */
+	public int getPlayerScore() {
+		return playerScore;
+	}
+
+	/**
 	 * @return the briscola
 	 */
 	protected Card getTrump() {
@@ -136,27 +155,20 @@ public abstract class AbstractGameState implements Cloneable {
 	}
 
 	/**
-	 * @param deckCards
-	 *            the deckCards to set
+	 * 
+	 * @param card
+	 * @return
 	 */
-	public void setDeckCards(Card... deckCards) {
-		this.deckCards = deckCards;
+	protected void removeFromAiCards(Card card) {
+		aiCards.remove(card);
 	}
 
 	/**
-	 * @param oppositeScore
-	 *            the oppositeScore to set
+	 * 
+	 * @param card
 	 */
-	protected void setPlayerScore(int oppositeScore) {
-		this.playerScore = oppositeScore;
-	}
-
-	/**
-	 * @param playerCards
-	 *            the playerCards to set
-	 */
-	public void setAiCards(Card... playerCards) {
-		this.aiCards = playerCards;
+	protected void removeFromDeckCards(Card card) {
+		deckCards.remove(card);
 	}
 
 	/**
@@ -165,6 +177,14 @@ public abstract class AbstractGameState implements Cloneable {
 	 */
 	protected void setAiScore(int playerScore) {
 		this.aiScore = playerScore;
+	}
+
+	/**
+	 * @param oppositeScore
+	 *            the oppositeScore to set
+	 */
+	protected void setPlayerScore(int oppositeScore) {
+		this.playerScore = oppositeScore;
 	}
 
 	/**

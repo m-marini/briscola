@@ -51,8 +51,7 @@ public abstract class AbstractDealAnimator extends AbstractAnimator {
 	protected Animation addDealPlayer(int cardViewId, int resId,
 			long startOffset) {
 		AnimationSet set = new AnimationSet(false);
-		set.addAnimation(createChangeDrawable(cardViewId, R.drawable.ic_back,
-				1));
+		set.addAnimation(createChangeDrawable(cardViewId, R.drawable.ic_back, 1));
 		set.addAnimation(createBringOnFront(cardViewId, 1));
 		set.addAnimation(createRotation(90f, 0f, 0));
 		set.addAnimation(createTranslation(cardViewId, R.id.deck, cardViewId, 0));

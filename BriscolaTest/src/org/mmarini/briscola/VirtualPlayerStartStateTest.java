@@ -3,12 +3,15 @@ package org.mmarini.briscola;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mmarini.briscola.Card.Figure;
 import org.mmarini.briscola.Card.Suit;
 
-public class VirtualOppositeStartStateTest {
+public class VirtualPlayerStartStateTest {
 
 	private static final double EPSILON = 1e-3;
 	private static final Card ASSO_DENARI = Card
@@ -26,6 +29,7 @@ public class VirtualOppositeStartStateTest {
 	private VirtualPlayerStartState state;
 	private TimerSearchContext ctx;
 	private Estimation estimation;
+	private List<Card> cards;
 
 	@Before
 	public void setUp() throws Exception {
@@ -34,16 +38,30 @@ public class VirtualOppositeStartStateTest {
 		estimation = new Estimation();
 		ctx = new TimerSearchContext();
 		ctx.setTimeout(60000);
+		cards = new ArrayList<>(40);
+		for (Card c : Card.getDeck()) {
+			cards.add(c);
+		}
 	}
 
 	@Test
 	public void testEstimate() throws InterruptedException {
-		Card[] deckCards = AbstractGameState.createAndRemove(Card.getDeck(),
-				ASSO_DENARI, DUE_COPPE, TRE_BASTONI, ASSO_BASTONI, TRE_COPPE,
-				QUATTRO_SPADE);
-		state.setDeckCards(deckCards);
-		state.setAiCards(ASSO_DENARI, DUE_COPPE, TRE_BASTONI);
-		state.setPlayerCards(ASSO_BASTONI, TRE_COPPE, QUATTRO_SPADE);
+		state.addToDeckCards(cards);
+		state.removeFromDeckCards(ASSO_DENARI);
+		state.removeFromDeckCards(DUE_COPPE);
+		state.removeFromDeckCards(TRE_BASTONI);
+		state.removeFromDeckCards(ASSO_BASTONI);
+		state.removeFromDeckCards(TRE_COPPE);
+		state.removeFromDeckCards(QUATTRO_SPADE);
+
+		state.addToAiCards(ASSO_DENARI);
+		state.addToAiCards(DUE_COPPE);
+		state.addToAiCards(TRE_BASTONI);
+
+		state.addToPlayerCards(ASSO_BASTONI);
+		state.addToPlayerCards(TRE_COPPE);
+		state.addToPlayerCards(QUATTRO_SPADE);
+
 		state.setAiScore(0);
 		state.setPlayerScore(0);
 		ctx.setMaxDeep(0);
@@ -51,7 +69,8 @@ public class VirtualOppositeStartStateTest {
 
 		assertFalse(estimation.isConfident());
 		assertEquals(0, estimation.getAiWinProb(), EPSILON);
-		assertEquals(11. / 61., estimation.getPlayerWinProb(), EPSILON);
+		assertEquals(11. / 61. + 1. / 27 / 62, estimation.getPlayerWinProb(),
+				EPSILON);
 	}
 
 }

@@ -25,6 +25,15 @@ public class FinalPlayerStartState extends AbstractVirtualGameState {
 	 * 
 	 */
 	public FinalPlayerStartState() {
+		super();
+	}
+
+	/**
+	 * @param state
+	 */
+	public FinalPlayerStartState(AbstractVirtualGameState state) {
+		super(state);
+		clearDeck();
 	}
 
 	/**
@@ -39,30 +48,27 @@ public class FinalPlayerStartState extends AbstractVirtualGameState {
 		boolean aiWinner = !playerCard.wins(aiCard, trump);
 		int score = computeScore(aiCard, playerCard);
 
-		Card[] aiCards = createAndRemove(getAiCards(), aiCard);
-		Card[] playerCards = createAndRemove(getPlayerCards(), playerCard);
 		int playerScore = getPlayerScore();
 		int aiScore = getAiScore();
 		AbstractVirtualGameState state = null;
+		int m = getAiCards().size() - 1;
 		if (aiWinner) {
 			aiScore += score;
-			if (aiCards.length == 1) {
-				state = new LastHandAIState();
+			if (m == 1) {
+				state = new LastHandAIState(this);
 			} else {
-				state = new FinalAIState();
+				state = new FinalAIState(this);
 			}
 		} else {
 			playerScore += score;
-			if (aiCards.length == 1) {
-				state = new LastHandPlayerState();
+			if (m == 1) {
+				state = new LastHandPlayerState(this);
 			} else {
-				state = new FinalPlayerStartState();
+				state = new FinalPlayerStartState(this);
 			}
 		}
-		state.setTrump(trump);
-		state.setAiCards(aiCards);
-		state.setPlayerCards(playerCards);
-		state.setDeckCards();
+		state.removeFromAiCards(aiCard);
+		state.removeFromPlayerCards(playerCard);
 		state.setAiScore(aiScore);
 		state.setPlayerScore(playerScore);
 		return state;
@@ -89,30 +95,33 @@ public class FinalPlayerStartState extends AbstractVirtualGameState {
 			return;
 		}
 
-		Card[] oppositeCards = getPlayerCards();
-		Card[] playerCards = getAiCards();
-		double wp = Double.NEGATIVE_INFINITY;
-		double lp = Double.NEGATIVE_INFINITY;
-		for (Card opposite : oppositeCards) {
-			double pw = Double.NEGATIVE_INFINITY;
-			double pl = 0;
-			for (Card card : playerCards) {
-				AbstractGameState state = createState(opposite, card);
+		double bestAiWinProb = Double.NEGATIVE_INFINITY;
+		double bestPlayerProb = Double.NEGATIVE_INFINITY;
+		Card bestPlayerCard = null;
+		for (Card playerCard : getPlayerCards()) {
+			double innerBestAiWinProb = Double.NEGATIVE_INFINITY;
+			double innerPlayerAIProb = 0;
+			for (Card aiCard : getAiCards()) {
+				AbstractGameState state = createState(playerCard, aiCard);
 				state.estimate(estimation, ctx);
-				double p = estimation.getAiWinProb();
-				if (p > pw) {
-					pw = p;
-					pl = estimation.getPlayerWinProb();
+				double aiWinProb = estimation.getAiWinProb();
+				double playerWinProb = estimation.getPlayerWinProb();
+				if (aiWinProb > innerBestAiWinProb
+						|| (aiWinProb == innerBestAiWinProb && playerWinProb < innerPlayerAIProb)) {
+					innerBestAiWinProb = aiWinProb;
+					innerPlayerAIProb = playerWinProb;
 				}
 			}
-			if (pl > lp) {
-				lp = pl;
-				wp = pw;
+			if (innerPlayerAIProb > bestPlayerProb
+					|| (innerPlayerAIProb == bestPlayerProb && innerBestAiWinProb < bestAiWinProb)) {
+				bestPlayerProb = innerPlayerAIProb;
+				bestAiWinProb = innerBestAiWinProb;
+				bestPlayerCard = playerCard;
 			}
 		}
-		estimation.setAiWinProb(wp);
-		estimation.setPlayerWinProb(lp);
+		estimation.setAiWinProb(bestAiWinProb);
+		estimation.setPlayerWinProb(bestPlayerProb);
 		estimation.setConfident(true);
-		estimation.setBestCard(null);
+		estimation.setBestCard(bestPlayerCard);
 	}
 }

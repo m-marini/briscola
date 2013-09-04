@@ -26,6 +26,7 @@ public class FinalPlayerMidState extends AbstractVirtualGameState {
 	 * 
 	 */
 	public FinalPlayerMidState() {
+		super();
 	}
 
 	/**
@@ -40,30 +41,26 @@ public class FinalPlayerMidState extends AbstractVirtualGameState {
 
 		int score = computeScore(aiCard, playerCard);
 
-		Card[] aiCards = createAndRemove(getAiCards(), aiCard);
-		Card[] playerCards = getPlayerCards();
 		int playerScore = getPlayerScore();
 		int aiScore = getAiScore();
 		AbstractVirtualGameState state = null;
+		int m = getAiCards().size() - 1;
 		if (aiWinner) {
 			aiScore += score;
-			if (aiCards.length == 1) {
-				state = new LastHandAIState();
+			if (m == 1) {
+				state = new LastHandAIState(this);
 			} else {
-				state = new FinalAIState();
+				state = new FinalAIState(this);
 			}
 		} else {
 			playerScore += score;
-			if (aiCards.length == 1) {
-				state = new LastHandPlayerState();
+			if (m == 1) {
+				state = new LastHandPlayerState(this);
 			} else {
-				state = new FinalPlayerStartState();
+				state = new FinalPlayerStartState(this);
 			}
 		}
-		state.setTrump(trump);
-		state.setAiCards(aiCards);
-		state.setPlayerCards(playerCards);
-		state.setDeckCards();
+		state.removeFromAiCards(aiCard);
 		state.setAiScore(aiScore);
 		state.setPlayerScore(playerScore);
 		return state;
@@ -90,22 +87,23 @@ public class FinalPlayerMidState extends AbstractVirtualGameState {
 			return;
 		}
 
-		Card[] aiCards = getAiCards();
-		double wp = Double.NEGATIVE_INFINITY;
-		double lp = 0;
+		double bestAiWinProb = Double.NEGATIVE_INFINITY;
+		double bestPlayerWinProb = 0;
 		Card bestCard = null;
-		for (Card aiCard : aiCards) {
+		for (Card aiCard : getAiCards()) {
 			AbstractGameState state = createState(aiCard);
 			state.estimate(estimation, ctx);
-			double p = estimation.getAiWinProb();
-			if (p > wp) {
-				wp = p;
-				lp = estimation.getPlayerWinProb();
+			double aiWinProb = estimation.getAiWinProb();
+			double playerWinProb = estimation.getPlayerWinProb();
+			if (aiWinProb > bestAiWinProb
+					|| (aiWinProb == bestAiWinProb && playerWinProb < bestPlayerWinProb)) {
+				bestAiWinProb = aiWinProb;
+				bestPlayerWinProb = playerWinProb;
 				bestCard = aiCard;
 			}
 		}
-		estimation.setAiWinProb(wp);
-		estimation.setPlayerWinProb(lp);
+		estimation.setAiWinProb(bestAiWinProb);
+		estimation.setPlayerWinProb(bestPlayerWinProb);
 		estimation.setConfident(true);
 		estimation.setBestCard(bestCard);
 	}

@@ -15,7 +15,7 @@ import org.mmarini.briscola.Card.Suit;
  * @author us00852
  * 
  */
-public class LastHandOppositeStateTest {
+public class LastHandPlayerStateTest {
 
 	private static final Card DUE_COPPE = Card.getCard(Figure.TWO, Suit.CUPS);
 	private static final Card FANTE_DENARI = Card.getCard(Figure.INFANTRY,
@@ -38,7 +38,6 @@ public class LastHandOppositeStateTest {
 		ctx.setTimeout(100000000);
 		estimation = new Estimation();
 		state = new LastHandPlayerState();
-		state.setDeckCards();
 		state.setTrump(DUE_DENARI);
 	}
 
@@ -53,8 +52,8 @@ public class LastHandOppositeStateTest {
 	public void testEstimateDraw1() throws InterruptedException {
 		state.setPlayerScore(60);
 		state.setAiScore(60);
-		state.setPlayerCards(QUATTRO_COPPE);
-		state.setAiCards(DUE_COPPE);
+		state.addToPlayerCards(QUATTRO_COPPE);
+		state.addToAiCards(DUE_COPPE);
 
 		ctx.estimate(estimation, state);
 		assertTrue(estimation.isConfident());
@@ -73,8 +72,8 @@ public class LastHandOppositeStateTest {
 	public void testEstimateDraw2() throws InterruptedException {
 		state.setPlayerScore(60);
 		state.setAiScore(60);
-		state.setAiCards(QUATTRO_COPPE);
-		state.setPlayerCards(DUE_COPPE);
+		state.addToAiCards(QUATTRO_COPPE);
+		state.addToPlayerCards(DUE_COPPE);
 
 		ctx.estimate(estimation, state);
 		assertTrue(estimation.isConfident());
@@ -93,8 +92,8 @@ public class LastHandOppositeStateTest {
 	public void testEstimateLoss() throws InterruptedException {
 		state.setPlayerScore(59);
 		state.setAiScore(59);
-		state.setPlayerCards(FANTE_DENARI);
-		state.setAiCards(DUE_COPPE);
+		state.addToPlayerCards(FANTE_DENARI);
+		state.addToAiCards(DUE_COPPE);
 
 		ctx.estimate(estimation, state);
 		assertTrue(estimation.isConfident());
@@ -113,8 +112,8 @@ public class LastHandOppositeStateTest {
 	public void testEstimateWin() throws InterruptedException {
 		state.setPlayerScore(59);
 		state.setAiScore(59);
-		state.setAiCards(FANTE_DENARI);
-		state.setPlayerCards(DUE_COPPE);
+		state.addToAiCards(FANTE_DENARI);
+		state.addToPlayerCards(DUE_COPPE);
 
 		ctx.estimate(estimation, state);
 		assertTrue(estimation.isConfident());

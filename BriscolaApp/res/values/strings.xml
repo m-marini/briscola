@@ -17,5 +17,14 @@
     <string name="yes_text">Yes</string>
     <string name="no_text">No</string>
     <string name="music_title">Music</string>
-    
+    <string name="playerCard1_desc">Left player card</string>
+    <string name="playerCard2_desc">Center player card</string>
+    <string name="playerCard3_desc">Right player card</string>
+    <string name="aiCard1_desc">Left opposite card</string>
+    <string name="aiCard2_desc">Center opposite card</string>
+    <string name="aiCard3_desc">Right opposite card</string>
+    <string name="trumpCard_desc">Trump card</string>
+    <string name="deck_desc">Deck</string>
+    <string name="playerCard_desc">Player played card</string>
+    <string name="aiCard_desc">Opposite played card</string>
 </resources>

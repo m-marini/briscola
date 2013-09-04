@@ -60,6 +60,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
+        android:contentDescription="@string/playerCard2_desc"
         android:src="@drawable/ic_empty" />
 
     <ImageView
@@ -67,8 +68,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_toRightOf="@+id/playerCard2"
         android:layout_marginLeft="8dp"
+        android:layout_toRightOf="@+id/playerCard2"
+        android:contentDescription="@string/playerCard3_desc"
         android:src="@drawable/ic_empty" />
 
     <ImageView
@@ -78,6 +80,7 @@
         android:layout_alignParentBottom="true"
         android:layout_marginRight="8dp"
         android:layout_toLeftOf="@+id/playerCard2"
+        android:contentDescription="@string/playerCard1_desc"
         android:src="@drawable/ic_empty" />
 
     <ImageView
@@ -86,6 +89,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
+        android:contentDescription="@string/aiCard2_desc"
         android:src="@drawable/ic_empty" />
 
     <ImageView
@@ -95,6 +99,7 @@
         android:layout_alignParentTop="true"
         android:layout_marginRight="8dp"
         android:layout_toLeftOf="@+id/aiCard2"
+        android:contentDescription="@string/aiCard1_desc"
         android:src="@drawable/ic_empty" />
 
     <ImageView
@@ -103,6 +108,7 @@
         android:layout_height="wrap_content"
         android:layout_alignLeft="@id/aiCard1"
         android:layout_centerVertical="true"
+        android:contentDescription="@string/aiCard_desc"
         android:src="@drawable/ic_empty" />
 
     <ImageView
@@ -111,6 +117,7 @@
         android:layout_height="wrap_content"
         android:layout_alignLeft="@id/aiCard3"
         android:layout_centerVertical="true"
+        android:contentDescription="@string/playerCard_desc"
         android:src="@drawable/ic_empty" />
 
     <ImageView
@@ -120,6 +127,7 @@
         android:layout_alignParentTop="true"
         android:layout_marginLeft="8dp"
         android:layout_toRightOf="@+id/aiCard2"
+        android:contentDescription="@string/aiCard3_desc"
         android:src="@drawable/ic_empty" />
 
     <ImageView
@@ -130,6 +138,7 @@
         android:layout_centerHorizontal="false"
         android:layout_centerVertical="true"
         android:layout_marginLeft="24dp"
+        android:contentDescription="@string/trumpCard_desc"
         android:src="@drawable/ic_empty" />
 
     <ImageView
@@ -139,6 +148,7 @@
         android:layout_alignTop="@+id/trumpCard"
         android:layout_marginLeft="28dp"
         android:layout_toRightOf="@+id/playerCard"
+        android:contentDescription="@string/deck_desc"
         android:src="@drawable/ic_deck" />
 
     <TextView

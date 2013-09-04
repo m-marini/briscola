@@ -14,10 +14,10 @@ import org.mmarini.briscola.Card.Suit;
  * @author us00852
  * 
  */
-public class FinalOppositeMidStateTest {
+public class FinalPlayerMidStateTest {
 
 	private static final double EPSILON = 10e-6;
-	private static final Card BRISCOLA = Card.getCard(Figure.TWO, Suit.SWORDS);
+	private static final Card DUE_SPADE = Card.getCard(Figure.TWO, Suit.SWORDS);
 	private static final Card ASSO_DENARI = Card
 			.getCard(Figure.ACE, Suit.COINS);
 	private static final Card TRE_DENARI = Card.getCard(Figure.THREE,
@@ -43,8 +43,7 @@ public class FinalOppositeMidStateTest {
 		ctx.setTimeout(1000000);
 		estimation = new Estimation();
 		state = new FinalPlayerMidState();
-		state.setDeckCards();
-		state.setTrump(BRISCOLA);
+		state.setTrump(DUE_SPADE);
 	}
 
 	/**
@@ -58,14 +57,15 @@ public class FinalOppositeMidStateTest {
 	public void testEstimate1() throws InterruptedException {
 		state.setAiScore(44);
 		state.setPlayerScore(40);
-		state.setAiCards(RE_DENARI, ASSO_DENARI);
-		state.setPlayerCards(TRE_DENARI);
+		state.addToAiCards(RE_DENARI);
+		state.addToAiCards(ASSO_DENARI);
+		state.addToPlayerCards(TRE_DENARI);
 		state.setPlayerCard(CAVALLO_DENARI);
 		ctx.estimate(estimation, state);
 
-		assertEquals(RE_DENARI, estimation.getBestCard());
 		assertEquals(1., estimation.getAiWinProb(), EPSILON);
 		assertEquals(0., estimation.getPlayerWinProb(), EPSILON);
+		assertEquals(RE_DENARI, estimation.getBestCard());
 	}
 
 	/**
@@ -79,14 +79,15 @@ public class FinalOppositeMidStateTest {
 	public void testEstimate1i() throws InterruptedException {
 		state.setAiScore(44);
 		state.setPlayerScore(40);
-		state.setAiCards(ASSO_DENARI, RE_DENARI);
-		state.setPlayerCards(TRE_DENARI);
+		state.addToAiCards(ASSO_DENARI);
+		state.addToAiCards(RE_DENARI);
+		state.addToPlayerCards(TRE_DENARI);
 		state.setPlayerCard(CAVALLO_DENARI);
 		ctx.estimate(estimation, state);
 
-		assertEquals(RE_DENARI, estimation.getBestCard());
 		assertEquals(1., estimation.getAiWinProb(), EPSILON);
 		assertEquals(0., estimation.getPlayerWinProb(), EPSILON);
+		assertEquals(RE_DENARI, estimation.getBestCard());
 	}
 
 	/**
@@ -100,14 +101,17 @@ public class FinalOppositeMidStateTest {
 	public void testEstimate2_1() throws InterruptedException {
 		state.setAiScore(61 - 57);
 		state.setPlayerScore(59);
-		state.setAiCards(ASSO_SPADE, ASSO_DENARI, TRE_COPPE);
-		state.setPlayerCards(TRE_DENARI, ASSO_COPPE);
+		state.addToAiCards(ASSO_SPADE);
+		state.addToAiCards(ASSO_DENARI);
+		state.addToAiCards(TRE_COPPE);
+		state.addToPlayerCards(TRE_DENARI);
+		state.addToPlayerCards(ASSO_COPPE);
 		state.setPlayerCard(RE_COPPE);
 		ctx.estimate(estimation, state);
 
-		assertEquals(TRE_COPPE, estimation.getBestCard());
 		assertEquals(1., estimation.getAiWinProb(), EPSILON);
 		assertEquals(0., estimation.getPlayerWinProb(), EPSILON);
+		assertEquals(TRE_COPPE, estimation.getBestCard());
 	}
 
 	/**
@@ -121,14 +125,17 @@ public class FinalOppositeMidStateTest {
 	public void testEstimate2_2() throws InterruptedException {
 		state.setAiScore(61 - 57);
 		state.setPlayerScore(59);
-		state.setAiCards(ASSO_DENARI, ASSO_SPADE, TRE_COPPE);
-		state.setPlayerCards(TRE_DENARI, ASSO_COPPE);
+		state.addToAiCards(ASSO_DENARI);
+		state.addToAiCards(ASSO_SPADE);
+		state.addToAiCards(TRE_COPPE);
+		state.addToPlayerCards(TRE_DENARI);
+		state.addToPlayerCards(ASSO_COPPE);
 		state.setPlayerCard(RE_COPPE);
 		ctx.estimate(estimation, state);
 
-		assertEquals(TRE_COPPE, estimation.getBestCard());
 		assertEquals(1., estimation.getAiWinProb(), EPSILON);
 		assertEquals(0., estimation.getPlayerWinProb(), EPSILON);
+		assertEquals(TRE_COPPE, estimation.getBestCard());
 	}
 
 	/**
@@ -142,14 +149,17 @@ public class FinalOppositeMidStateTest {
 	public void testEstimate2_3() throws InterruptedException {
 		state.setAiScore(61 - 57);
 		state.setPlayerScore(59);
-		state.setAiCards(ASSO_DENARI, TRE_COPPE, ASSO_SPADE);
-		state.setPlayerCards(TRE_DENARI, ASSO_COPPE);
+		state.addToAiCards(ASSO_DENARI);
+		state.addToAiCards(TRE_COPPE);
+		state.addToAiCards(ASSO_SPADE);
+		state.addToPlayerCards(TRE_DENARI);
+		state.addToPlayerCards(ASSO_COPPE);
 		state.setPlayerCard(RE_COPPE);
 		ctx.estimate(estimation, state);
 
-		assertEquals(TRE_COPPE, estimation.getBestCard());
 		assertEquals(1., estimation.getAiWinProb(), EPSILON);
 		assertEquals(0., estimation.getPlayerWinProb(), EPSILON);
+		assertEquals(TRE_COPPE, estimation.getBestCard());
 	}
 
 }

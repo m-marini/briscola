@@ -16,5 +16,15 @@
     <string name="resume_message">Vuoi riprendere il gioco?</string>
     <string name="yes_text">Si</string>
     <string name="no_text">No</string>
+    <string name="playerCard1_desc">Carta sinistra giocatore</string>
+    <string name="playerCard2_desc">Carta centrale giocatore</string>
+    <string name="playerCard3_desc">Carta destra giocatore</string>
+    <string name="aiCard1_desc">Carta sinistra avversario</string>
+    <string name="aiCard2_desc">Carta centrale avversario</string>
+    <string name="aiCard3_desc">Carta destra avversario</string>
+    <string name="trumpCard_desc">Briscola</string>
+    <string name="deck_desc">Mazzo</string>
+    <string name="playerCard_desc">Carta scartata giocatore</string>
+    <string name="aiCard_desc">Carta scartata avversario</string>
     
 </resources>

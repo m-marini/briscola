@@ -22,6 +22,14 @@ public class LastHandPlayerState extends AbstractVirtualGameState {
 	}
 
 	/**
+	 * @param state
+	 */
+	public LastHandPlayerState(AbstractVirtualGameState state) {
+		super(state);
+		clearDeck();
+	}
+
+	/**
 	 * @see org.mmarini.briscola.AbstractGameState#estimate(org.mmarini.briscola.
 	 *      Estimation, org.mmarini.briscola.StrategySearchContext)
 	 */
@@ -29,9 +37,9 @@ public class LastHandPlayerState extends AbstractVirtualGameState {
 	public void estimate(Estimation estimation,
 			StrategySearchContext strategySearchContext)
 			throws InterruptedException {
-		int score = getPlayerScore();
-		Card aiCard = getPlayerCards()[0];
-		Card playerCard = getPlayerCards()[0];
+		int score = getAiScore();
+		Card aiCard = getAiCards().get(0);
+		Card playerCard = getPlayerCards().get(0);
 		if (!playerCard.wins(aiCard, getTrump())) {
 			score += computeScore(aiCard, playerCard);
 		}

@@ -28,14 +28,19 @@ public class VirtualPlayerStartState extends AbstractVirtualGameState {
 	}
 
 	/**
+	 * @param state
+	 */
+	public VirtualPlayerStartState(AbstractVirtualGameState state) {
+		super(state);
+	}
+
+	/**
 	 * 
 	 * @param playerCard
 	 * @param aiCard
 	 * @return
 	 */
 	private AbstractVirtualGameState createState(Card playerCard, Card aiCard) {
-		Card[] aiCards = createAndRemove(getAiCards(), aiCard);
-		Card[] playerCards = createAndRemove(getPlayerCards(), playerCard);
 		Card trump = getTrump();
 		boolean aiWinner = !playerCard.wins(aiCard, trump);
 		int score = computeScore(aiCard, playerCard);
@@ -47,13 +52,11 @@ public class VirtualPlayerStartState extends AbstractVirtualGameState {
 			state = new VirtualAIEndState();
 		} else {
 			playerScore += score;
-			state = new VirtualPlayerEndState();
+			state = new VirtualPlayerEndState(this);
 		}
-		state.setTrump(trump);
-		state.setDeckCards(getDeckCards());
-		state.setAiCards(aiCards);
+		state.removeFromAiCards(aiCard);
+		state.removeFromPlayerCards(playerCard);
 		state.setAiScore(aiScore);
-		state.setPlayerCards(playerCards);
 		state.setPlayerScore(playerScore);
 		return state;
 	}
@@ -82,40 +85,42 @@ public class VirtualPlayerStartState extends AbstractVirtualGameState {
 		 * Per ogni carta giocata prende la risposta con stima di perdita più
 		 * alta e seleziona quella con probabilità di vincita migliore.
 		 */
-		boolean confident = false;
-		double wpp = Double.NEGATIVE_INFINITY;
-		double lpp = Double.NEGATIVE_INFINITY;
-		Card bestCard = null;
-		Card aiBest = null;
+		boolean bestConfident = false;
+		double bestAiWinProb = Double.NEGATIVE_INFINITY;
+		double bestPlayerWinProb = Double.NEGATIVE_INFINITY;
+		Card bestPlayerCard = null;
+		Card bestAiCard = null;
 		for (Card playerCard : getPlayerCards()) {
-			double wop = Double.NEGATIVE_INFINITY;
-			double lop = Double.NEGATIVE_INFINITY;
+			double innerBestAiWinProb = Double.NEGATIVE_INFINITY;
+			double innerBestPlayerWinProb = Double.NEGATIVE_INFINITY;
 			boolean aiConfident = false;
-			Card best = null;
+			Card innerBestAiCard = null;
 			for (Card aiCard : getAiCards()) {
 				AbstractVirtualGameState state = createState(playerCard, aiCard);
 				state.estimate(estimation, ctx);
-				double pl = estimation.getPlayerWinProb();
-				double pw = estimation.getAiWinProb();
-				if (pw > wop || (pw == wop && pl < lop)) {
-					lop = pl;
-					wop = pw;
+				double playerWinProb = estimation.getPlayerWinProb();
+				double aiWinProb = estimation.getAiWinProb();
+				if (aiWinProb > innerBestAiWinProb
+						|| (aiWinProb == innerBestAiWinProb && playerWinProb < innerBestPlayerWinProb)) {
+					innerBestPlayerWinProb = playerWinProb;
+					innerBestAiWinProb = aiWinProb;
 					aiConfident = estimation.isConfident();
-					best = aiCard;
+					innerBestAiCard = aiCard;
 				}
 			}
-			if (lop > lpp || (lop == lpp && wop < wpp)) {
-				wpp = wop;
-				lpp = lop;
-				confident = aiConfident;
-				bestCard = playerCard;
-				aiBest = best;
+			if (innerBestPlayerWinProb > bestPlayerWinProb
+					|| (innerBestPlayerWinProb == bestPlayerWinProb && innerBestAiWinProb < bestAiWinProb)) {
+				bestAiWinProb = innerBestAiWinProb;
+				bestPlayerWinProb = innerBestPlayerWinProb;
+				bestConfident = aiConfident;
+				bestPlayerCard = playerCard;
+				bestAiCard = innerBestAiCard;
 			}
 		}
-		estimation.setBestCard(bestCard);
-		estimation.setConfident(confident);
-		estimation.setPlayerWinProb(lpp);
-		estimation.setAiWinProb(wpp);
-		logger.debug("{} vs {} = {}", bestCard, aiBest, estimation);
+		estimation.setBestCard(bestPlayerCard);
+		estimation.setConfident(bestConfident);
+		estimation.setPlayerWinProb(bestPlayerWinProb);
+		estimation.setAiWinProb(bestAiWinProb);
+		logger.debug("{} vs {} = {}", bestPlayerCard, bestAiCard, estimation);
 	}
 }

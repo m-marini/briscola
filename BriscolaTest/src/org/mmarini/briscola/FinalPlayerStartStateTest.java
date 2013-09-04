@@ -14,7 +14,7 @@ import org.mmarini.briscola.Card.Suit;
  * @author us00852
  * 
  */
-public class FinalOppositeStartStateTest {
+public class FinalPlayerStartStateTest {
 
 	private static final double EPSILON = 10e-6;
 	private static final Card BRISCOLA = Card.getCard(Figure.TWO, Suit.SWORDS);
@@ -37,7 +37,6 @@ public class FinalOppositeStartStateTest {
 		ctx.setTimeout(1000000);
 		estimation = new Estimation();
 		state = new FinalPlayerStartState();
-		state.setDeckCards();
 		state.setTrump(BRISCOLA);
 	}
 
@@ -52,12 +51,16 @@ public class FinalOppositeStartStateTest {
 	public void testEstimate1() throws InterruptedException {
 		state.setAiScore(44);
 		state.setPlayerScore(40);
-		state.setAiCards(RE_SPADE, TRE_DENARI);
-		state.setPlayerCards(ASSO_COPPE, ASSO_DENARI);
+		state.addToAiCards(RE_SPADE);
+		state.addToAiCards(TRE_DENARI);
+		state.addToPlayerCards(ASSO_COPPE);
+		state.addToPlayerCards(ASSO_DENARI);
+
 		ctx.estimate(estimation, state);
 
 		assertEquals(0., estimation.getAiWinProb(), EPSILON);
 		assertEquals(1., estimation.getPlayerWinProb(), EPSILON);
+		assertEquals(ASSO_COPPE, estimation.getBestCard());
 	}
 
 	/**
@@ -71,12 +74,15 @@ public class FinalOppositeStartStateTest {
 	public void testEstimate1i() throws InterruptedException {
 		state.setAiScore(44);
 		state.setPlayerScore(40);
-		state.setAiCards(RE_SPADE, TRE_DENARI);
-		state.setPlayerCards(ASSO_DENARI, ASSO_COPPE);
+		state.addToAiCards(RE_SPADE);
+		state.addToAiCards(TRE_DENARI);
+		state.addToPlayerCards(ASSO_DENARI);
+		state.addToPlayerCards(ASSO_COPPE);
 		ctx.estimate(estimation, state);
 
 		assertEquals(0., estimation.getAiWinProb(), EPSILON);
 		assertEquals(1., estimation.getPlayerWinProb(), EPSILON);
+		assertEquals(ASSO_COPPE, estimation.getBestCard());
 	}
 
 }
