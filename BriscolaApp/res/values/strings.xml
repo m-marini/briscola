@@ -27,4 +27,6 @@
     <string name="deck_desc">Deck</string>
     <string name="playerCard_desc">Player played card</string>
     <string name="aiCard_desc">Opposite played card</string>
+    <string name="aiWin_message">I\'ll win</string>
+    <string name="playerWin_message">You could win</string>
 </resources>

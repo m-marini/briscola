@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.mmarini.briscola.AnalyzerListener;
 import org.mmarini.briscola.Card;
 import org.mmarini.briscola.GameHandler;
 import org.mmarini.briscola.GameMemento;
@@ -44,6 +45,7 @@ import android.view.animation.Animation.AnimationListener;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 /**
  * 
@@ -52,13 +54,10 @@ import android.widget.TextView;
  */
 public class BriscolaActivity extends Activity {
 	private static final String TRACE_FOLDER_NAME = "Briscola";
-	private static final String TRACE_FILENAME = "briscola.trace";
-	private static final String BRISCOLA_FILE_SEPARATOR = ",";
+	private static final String TRACE_FILENAME = "briscola.log";
 	private static final String BRISCOLA_FILE = "briscola.txt";
-	private static final String GAME_HANDLER_KEY = "gameHandler";
 	private static final int THINK_DURATION = 1000;
-	private static final String TEST_STATE = "aiWonGame=0;playerCards=18,10,11;playerHand=true;playerWonGame=0;aiScore=60;playerFirstHand=false;aiCards=0,1,2;status=PLAYER_MOVE;"
-			+ "deck=20;" + "trump=8;playerScore=40;";
+	private static final String TEST_STATE = "aiWonGame=6;playerCards=39,35,36;aiCard=7;playerHand=false;playerWonGame=1;aiScore=57;status=PLAYER_MOVE;playerFirstHand=false;aiCards=32,14;deck=;trump=36;playerScore=43;";
 	private static final boolean TRACE_ENABLED = true;
 
 	private static Logger logger = LoggerFactory
@@ -91,6 +90,7 @@ public class BriscolaActivity extends Activity {
 	private boolean paused;
 	private ImageView trumpCardView;
 	private MediaPlayer mediaPlayer;
+	private boolean analisysReported;
 	private AsyncTask<Void, Void, Void> analysisTask;
 
 	/**
@@ -117,6 +117,19 @@ public class BriscolaActivity extends Activity {
 			}
 		};
 
+		handler.setAnalyzerListener(new AnalyzerListener() {
+
+			@Override
+			public void notifyAnalysis(GameHandler arg0) {
+				runOnUiThread(new Runnable() {
+
+					@Override
+					public void run() {
+						onAnalisysUpdate();
+					}
+				});
+			}
+		});
 		initalDealAnimator.setHandler(handler);
 		nextDealAnimator.setHandler(handler);
 		playerAnimator.setHandler(handler);
@@ -246,11 +259,21 @@ public class BriscolaActivity extends Activity {
 	}
 
 	/**
+	 * Apply the handler state and restore the activity views, data
 	 * 
+	 * @param state
 	 */
-	private void backUpGameState() {
-		gameStateBackUp = handler.createMemento().toString();
-		logger.debug("Backup: {}", gameStateBackUp);
+	void applyState(String state) {
+		logger.debug("applyState: {}", state);
+		gameStateBackUp = state;
+		if (gameStateBackUp != null) {
+			GameMemento memento = GameMemento.create(gameStateBackUp);
+			handler.applyMemento(memento);
+			reloadSettings();
+			refreshData();
+			restoreViews();
+			restoreButtonsState();
+		}
 	}
 
 	/**
@@ -273,13 +296,13 @@ public class BriscolaActivity extends Activity {
 	 * 
 	 * @return
 	 */
-	private boolean dealNext() {
+	boolean dealNext() {
 		disableButtons();
 		handler.closeHand();
 		trace();
 		refreshData();
 		if (handler.isFinished()) {
-			saveValues();
+			storeGame();
 			cleanUpAnimator.start();
 		} else {
 			handler.deal();
@@ -354,38 +377,8 @@ public class BriscolaActivity extends Activity {
 	/**
 	 * @return the handler
 	 */
-	public GameHandler getHandler() {
+	GameHandler getHandler() {
 		return handler;
-	}
-
-	/**
-	 * 
-	 */
-	private void loadValues() {
-		FileInputStream stream;
-		try {
-			stream = openFileInput(BRISCOLA_FILE);
-			try {
-				BufferedReader in = new BufferedReader(new InputStreamReader(
-						stream));
-				String line = in.readLine();
-				logger.debug("loadValues: {}", line);
-				if (line != null) {
-					String[] args = line.split(BRISCOLA_FILE_SEPARATOR);
-					if (args.length >= 0)
-						handler.setPlayerWonGame(Integer.parseInt(args[0]));
-					if (args.length >= 1)
-						handler.setAiWonGame(Integer.parseInt(args[1]));
-					if (args.length >= 2)
-						handler.setPlayerFirstHand(Boolean
-								.parseBoolean(args[2]));
-				}
-			} finally {
-				stream.close();
-			}
-		} catch (IOException e) {
-			logger.error("Error reading file " + BRISCOLA_FILE, e);
-		}
 	}
 
 	/**
@@ -407,11 +400,30 @@ public class BriscolaActivity extends Activity {
 	 */
 	private void onAIMoveEnd() {
 		logger.debug("onAIMoveEnd");
-		backUpGameState();
+		storeGame();
 		if (handler.isPlayerHand()) {
 			enableDeal(dealNextListener);
 		} else {
 			enableCardButtons();
+		}
+	}
+
+	/**
+	 * 
+	 */
+	private void onAnalisysUpdate() {
+		if (!analisysReported && handler.isConfident()) {
+			if (handler.getAiWinProbability() == 1.) {
+				analisysReported = true;
+				Toast.makeText(this,
+						getResources().getString(R.string.aiWin_message),
+						Toast.LENGTH_SHORT).show();
+			} else if (handler.getPlayerWinProbability() == 1.) {
+				analisysReported = true;
+				Toast.makeText(this,
+						getResources().getString(R.string.playerWin_message),
+						Toast.LENGTH_SHORT).show();
+			}
 		}
 	}
 
@@ -469,13 +481,12 @@ public class BriscolaActivity extends Activity {
 
 		if (savedInstanceState != null) {
 			paused = true;
-			restoreHandler(savedInstanceState);
 		} else {
-			handler.clear();
-			// restoreHandlerState(TEST_STATE);
 			paused = false;
 		}
-		loadValues();
+		analisysReported = false;
+		// applyState(TEST_STATE);
+		// storeGame();
 	}
 
 	/**
@@ -501,9 +512,10 @@ public class BriscolaActivity extends Activity {
 	 */
 	private void onInitialDealEnd() {
 		logger.debug("onInitialDealEnd");
+		analisysReported = false;
 		refreshData();
 		if (handler.isPlayerHand()) {
-			backUpGameState();
+			storeGame();
 			enableCardButtons();
 		} else {
 			startAnalysis();
@@ -517,7 +529,7 @@ public class BriscolaActivity extends Activity {
 		logger.debug("onNextDealEnd");
 		refreshData();
 		if (handler.isPlayerHand()) {
-			backUpGameState();
+			storeGame();
 			enableCardButtons();
 		} else {
 			startAnalysis();
@@ -564,7 +576,7 @@ public class BriscolaActivity extends Activity {
 		if (handler.isPlayerHand()) {
 			startAnalysis();
 		} else {
-			backUpGameState();
+			storeGame();
 			enableDeal(dealNextListener);
 		}
 	}
@@ -585,7 +597,7 @@ public class BriscolaActivity extends Activity {
 	protected void onRestoreInstanceState(Bundle savedInstanceState) {
 		super.onRestoreInstanceState(savedInstanceState);
 		logger.debug("onRestoreInstanceState");
-		restoreHandler(savedInstanceState);
+		restoreGame();
 	}
 
 	/**
@@ -595,6 +607,7 @@ public class BriscolaActivity extends Activity {
 	protected void onResume() {
 		super.onResume();
 		logger.debug("onResume");
+		analisysReported = false;
 		if (paused)
 			startResumeDialog();
 		else {
@@ -609,8 +622,6 @@ public class BriscolaActivity extends Activity {
 	protected void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
 		logger.debug("onSaveInstanceState");
-		if (gameStateBackUp != null)
-			outState.putString(GAME_HANDLER_KEY, gameStateBackUp);
 	}
 
 	/**
@@ -632,7 +643,7 @@ public class BriscolaActivity extends Activity {
 	}
 
 	/**
-	 * 
+	 * Refresh the game info view depending on game handler state
 	 */
 	private void refreshData() {
 		int score = handler.getAiScore();
@@ -650,9 +661,77 @@ public class BriscolaActivity extends Activity {
 	}
 
 	/**
-	 * 
+	 * Reload the game setting from preferences
 	 */
-	private void refreshViews() {
+	private void reloadSettings() {
+		SharedPreferences sharePrefs = PreferenceManager
+				.getDefaultSharedPreferences(this);
+		String value = sharePrefs.getString("think_time", "10");
+		try {
+			long thinkTime = Long.parseLong(value);
+			handler.setTimeout(thinkTime * 1000);
+		} catch (NumberFormatException e) {
+			logger.error("Invalid value", e);
+		}
+		boolean scoreVisible = sharePrefs.getBoolean("score_visible", true);
+		if (scoreVisible) {
+			aiScore.setVisibility(View.VISIBLE);
+			playerScore.setVisibility(View.VISIBLE);
+		} else {
+			aiScore.setVisibility(View.INVISIBLE);
+			playerScore.setVisibility(View.INVISIBLE);
+		}
+		boolean musicEnabled = sharePrefs.getBoolean("music_enabled", true);
+		if (musicEnabled) {
+			mediaPlayer = MediaPlayer.create(this, R.raw.music);
+			mediaPlayer.setLooping(true);
+			mediaPlayer.start();
+		}
+	}
+
+	/**
+	 * Restore the state of buttons depending on game handler state
+	 */
+	private void restoreButtonsState() {
+		logger.debug("restoreButtons");
+		disableButtons();
+		switch (handler.getStatus()) {
+		case PLAYER_MOVE:
+			enableCardButtons();
+			break;
+		case CLOSE_HAND:
+			enableDeal(dealNextListener);
+			break;
+		default:
+			enableDeal(dealInitListener);
+			break;
+		}
+	}
+
+	/**
+	 * Restore the state of game and activity from persistence file
+	 */
+	private void restoreGame() {
+		try {
+			FileInputStream stream = openFileInput(BRISCOLA_FILE);
+			try {
+				BufferedReader in = new BufferedReader(new InputStreamReader(
+						stream));
+				String state = in.readLine();
+				logger.debug("LoadValues {}", state);
+				applyState(state);
+			} finally {
+				stream.close();
+			}
+		} catch (IOException e) {
+			logger.error("Error reading file " + BRISCOLA_FILE, e);
+		}
+	}
+
+	/**
+	 * Restore the views depending on game handler state
+	 */
+	private void restoreViews() {
 		// Set deck cards view
 		int n = handler.getDeckCount();
 		if (handler.isFinished()) {
@@ -705,139 +784,34 @@ public class BriscolaActivity extends Activity {
 		cardResIdMap.clear();
 		List<Card> cards = handler.getPlayerCards();
 		n = cards.size();
+		movedCardId = 0;
 		for (int i = 0; i < 3; ++i) {
+			ImageView imageView = playerCardViews[i];
 			if (i >= n) {
-				playerCardViews[i].setImageResource(R.drawable.ic_empty);
+				imageView.setImageResource(R.drawable.ic_empty);
+				if (movedCardId == 0) {
+					movedCardId = imageView.getId();
+				}
 			} else {
 				card = cards.get(i);
 				int cardId = cardDrawableFactory.findResId(card);
-				playerCardViews[i].setImageResource(cardId);
-				cardResIdMap.put(card, playerCardViews[i].getId());
+				imageView.setImageResource(cardId);
+				cardResIdMap.put(card, imageView.getId());
 			}
 		}
 	}
 
 	/**
-	 * 
-	 */
-	private void reloadSettings() {
-		SharedPreferences sharePrefs = PreferenceManager
-				.getDefaultSharedPreferences(this);
-		String value = sharePrefs.getString("think_time", "10");
-		try {
-			long thinkTime = Long.parseLong(value);
-			handler.setTimeout(thinkTime * 1000);
-		} catch (NumberFormatException e) {
-			logger.error("Invalid value", e);
-		}
-		boolean scoreVisible = sharePrefs.getBoolean("score_visible", true);
-		if (scoreVisible) {
-			aiScore.setVisibility(View.VISIBLE);
-			playerScore.setVisibility(View.VISIBLE);
-		} else {
-			aiScore.setVisibility(View.INVISIBLE);
-			playerScore.setVisibility(View.INVISIBLE);
-		}
-		boolean musicEnabled = sharePrefs.getBoolean("music_enabled", true);
-		if (musicEnabled) {
-			mediaPlayer = MediaPlayer.create(this, R.raw.music);
-			mediaPlayer.setLooping(true);
-			mediaPlayer.start();
-		}
-	}
-
-	/**
-	 * 
-	 */
-	private void restoreButtons() {
-		logger.debug("restoreButtons");
-		disableButtons();
-		switch (handler.getStatus()) {
-		case PLAYER_MOVE:
-			enableCardButtons();
-			break;
-		case CLOSE_HAND:
-			enableDeal(dealNextListener);
-			break;
-		default:
-			enableDeal(dealInitListener);
-			break;
-		}
-	}
-
-	/**
-	 * 
-	 * @param savedInstanceState
-	 */
-	private void restoreHandler(Bundle savedInstanceState) {
-		restoreHandlerState(savedInstanceState.getString(GAME_HANDLER_KEY));
-	}
-
-	/**
-	 * 
-	 */
-	private void restoreHandlerState() {
-		logger.debug("restoreHandler: {}", gameStateBackUp);
-		if (gameStateBackUp != null) {
-			GameMemento memento = GameMemento.create(gameStateBackUp);
-			handler.applyMemento(memento);
-			reloadSettings();
-			refreshData();
-			refreshViews();
-			restoreButtons();
-		}
-	}
-
-	/**
-	 * 
-	 * @param state
-	 */
-	void restoreHandlerState(String state) {
-		gameStateBackUp = state;
-		restoreHandlerState();
-	}
-
-	/**
-	 * 
+	 * Resume the game from persistence file
 	 */
 	private void resumeGame() {
-		logger.debug("resume");
+		logger.debug("resumeGame");
 		paused = false;
-		reloadSettings();
-		refreshViews();
-		refreshData();
-		restoreButtons();
+		restoreGame();
 	}
 
 	/**
-	 * 
-	 */
-	private void saveValues() {
-		FileOutputStream stream;
-		try {
-			stream = openFileOutput(BRISCOLA_FILE, MODE_PRIVATE);
-			try {
-				StringBuilder line = new StringBuilder();
-				line.append(handler.getPlayerWonGame())
-						.append(BRISCOLA_FILE_SEPARATOR)
-						.append(handler.getAiWonGame())
-						.append(BRISCOLA_FILE_SEPARATOR)
-						.append(handler.isPlayerFirstHand());
-
-				PrintWriter out = new PrintWriter(stream);
-				out.println(line);
-				out.close();
-				logger.debug("saveValues: {}", line);
-			} finally {
-				stream.close();
-			}
-		} catch (IOException e) {
-			logger.error("Error writting file " + BRISCOLA_FILE, e);
-		}
-	}
-
-	/**
-	 * 
+	 * Show the options
 	 */
 	private void showOptions() {
 		Intent intent = new Intent(this, SettingsActivity.class);
@@ -886,6 +860,28 @@ public class BriscolaActivity extends Activity {
 		});
 		AlertDialog dialog = builder.create();
 		dialog.show();
+	}
+
+	/**
+	 * Store the state of game to the persistence file
+	 */
+	private void storeGame() {
+		gameStateBackUp = handler.createMemento().toString();
+		logger.debug("storeStatuts: {}", gameStateBackUp);
+		try {
+			FileOutputStream stream = openFileOutput(BRISCOLA_FILE,
+					MODE_PRIVATE);
+			try {
+				PrintWriter out = new PrintWriter(stream);
+				out.println(gameStateBackUp);
+				out.close();
+				logger.debug("saveValues: {}", gameStateBackUp);
+			} finally {
+				stream.close();
+			}
+		} catch (IOException e) {
+			logger.error("Error writting file " + BRISCOLA_FILE, e);
+		}
 	}
 
 	/**

@@ -26,5 +26,7 @@
     <string name="deck_desc">Mazzo</string>
     <string name="playerCard_desc">Carta scartata giocatore</string>
     <string name="aiCard_desc">Carta scartata avversario</string>
-    
+    <string name="aiWin_message">Vincerò io</string>
+    <string name="playerWin_message">Potersti vincere tu</string>
+
 </resources>

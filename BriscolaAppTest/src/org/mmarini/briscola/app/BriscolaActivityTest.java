@@ -57,7 +57,7 @@ public class BriscolaActivityTest extends
 
 			@Override
 			public void run() {
-				activity.restoreHandlerState(STATE1);
+				activity.applyState(STATE1);
 			}
 		});
 		instr.waitForIdleSync();
