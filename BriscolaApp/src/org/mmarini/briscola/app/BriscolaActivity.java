@@ -709,6 +709,8 @@ public class BriscolaActivity extends Activity {
 			}
 		} catch (IOException e) {
 			logger.error("Error reading file " + BRISCOLA_FILE, e);
+			storeGame();
+			applyState(gameStateBackUp);
 		}
 	}
 
