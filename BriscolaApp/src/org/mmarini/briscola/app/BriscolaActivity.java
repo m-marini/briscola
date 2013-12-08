@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.mmarini.briscola.AnalyzerListener;
 import org.mmarini.briscola.Card;
 import org.mmarini.briscola.GameHandler;
 import org.mmarini.briscola.GameMemento;
@@ -57,7 +56,8 @@ public class BriscolaActivity extends Activity {
 	private static final String TRACE_FILENAME = "briscola.log";
 	private static final String BRISCOLA_FILE = "briscola.txt";
 	private static final int THINK_DURATION = 1000;
-	private static final String TEST_STATE = "aiWonGame=6;playerCards=39,35,36;aiCard=7;playerHand=false;playerWonGame=1;aiScore=57;status=PLAYER_MOVE;playerFirstHand=false;aiCards=32,14;deck=;trump=36;playerScore=43;";
+	private static final String TEST_STATE = "aiWonGame=6;playerCards=23,38,3;playerHand=true;playerWonGame=2;aiScore=6;status=PLAYER_MOVE;playerFirstHand=true;aiCards=24,30,18;deck=14,2,33,32,20,1,19,16,9,39,11,26,12;trump=34;playerScore=55;";
+	private static final boolean TEST_ENABLED = false;
 	private static final boolean TRACE_ENABLED = true;
 
 	private static Logger logger = LoggerFactory
@@ -116,20 +116,6 @@ public class BriscolaActivity extends Activity {
 				return true;
 			}
 		};
-
-		handler.setAnalyzerListener(new AnalyzerListener() {
-
-			@Override
-			public void notifyAnalysis(GameHandler arg0) {
-				runOnUiThread(new Runnable() {
-
-					@Override
-					public void run() {
-						onAnalisysUpdate();
-					}
-				});
-			}
-		});
 		initalDealAnimator.setHandler(handler);
 		nextDealAnimator.setHandler(handler);
 		playerAnimator.setHandler(handler);
@@ -302,7 +288,6 @@ public class BriscolaActivity extends Activity {
 		trace();
 		refreshData();
 		if (handler.isFinished()) {
-			storeGame();
 			cleanUpAnimator.start();
 		} else {
 			handler.deal();
@@ -411,30 +396,26 @@ public class BriscolaActivity extends Activity {
 	/**
 	 * 
 	 */
-	private void onAnalisysUpdate() {
-		if (!analisysReported && handler.isConfident()) {
-			if (handler.getAiWinProbability() == 1.) {
-				analisysReported = true;
-				Toast.makeText(this,
-						getResources().getString(R.string.aiWin_message),
-						Toast.LENGTH_SHORT).show();
-			} else if (handler.getPlayerWinProbability() == 1.) {
-				analisysReported = true;
-				Toast.makeText(this,
-						getResources().getString(R.string.playerWin_message),
-						Toast.LENGTH_SHORT).show();
-			}
-		}
-	}
-
-	/**
-	 * 
-	 */
 	private void onAnalysisEnd() {
 		logger.debug("onAnalysisEnd");
 		if (!isFinishing()) {
 			progressBar.setVisibility(View.INVISIBLE);
 			aiMoveAnimator.start();
+			if (!analisysReported && handler.isConfident()) {
+				if (handler.getAiWinProbability() == 1.) {
+					analisysReported = true;
+					Toast.makeText(this,
+							getResources().getString(R.string.aiWin_message),
+							Toast.LENGTH_SHORT).show();
+				} else if (handler.getPlayerWinProbability() == 1.) {
+					analisysReported = true;
+					Toast.makeText(
+							this,
+							getResources()
+									.getString(R.string.playerWin_message),
+							Toast.LENGTH_SHORT).show();
+				}
+			}
 		}
 	}
 
@@ -485,8 +466,10 @@ public class BriscolaActivity extends Activity {
 			paused = false;
 		}
 		analisysReported = false;
-		// applyState(TEST_STATE);
-		// storeGame();
+		if (TEST_ENABLED) {
+			applyState(TEST_STATE);
+			storeGame();
+		}
 	}
 
 	/**
@@ -666,13 +649,14 @@ public class BriscolaActivity extends Activity {
 	private void reloadSettings() {
 		SharedPreferences sharePrefs = PreferenceManager
 				.getDefaultSharedPreferences(this);
+		long thinkTime = 10;
 		String value = sharePrefs.getString("think_time", "10");
 		try {
-			long thinkTime = Long.parseLong(value);
-			handler.setTimeout(thinkTime * 1000);
+			thinkTime = Long.parseLong(value);
 		} catch (NumberFormatException e) {
 			logger.error("Invalid value", e);
 		}
+		handler.setTimeout(thinkTime * 1000);
 		boolean scoreVisible = sharePrefs.getBoolean("score_visible", true);
 		if (scoreVisible) {
 			aiScore.setVisibility(View.VISIBLE);

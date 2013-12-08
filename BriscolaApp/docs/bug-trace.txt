@@ -1,7 +1,40 @@
-Bug trace
 
-*	Non mostra il toast di probabile vincita del giocatore
-*	Fixed
+		B U G   T R A C E
+
+----------------------------------------------------------------------------------------------------------------------
+	Gestione task di analisi nel ciclo di vita dell'applicazione (stop/start)
+
+
+----------------------------------------------------------------------------------------------------------------------
+	Gestione cambio di configurazione dell'applicazione (portrati/landscape)
+
+
+----------------------------------------------------------------------------------------------------------------------
+	Analisi ha risposto immediatamente (sembra non aver analizzato nulla)
+	Non riproducibile (forse setting del timeout non dalle preferenze)
+
+Fri Sep 06 07:41:07 GMT+02:00 2013: aiWonGame=6;playerCards=12,33,7;playerHand=true;playerWonGame=2;aiScore=0;status=PLAYER_MOVE;playerFirstHand=true;aiCards=27,19,26;deck=8,13,37,30,39,3,29,10,11,14,16,31,1,18,20,23,38,9,32,21,35,0,5,6,25,2,15,17,36,4,34,22,28;trump=24;playerScore=0;
+Fri Sep 06 07:41:15 GMT+02:00 2013: aiWonGame=6;playerCards=33,7;playerHand=true;playerWonGame=2;aiScore=0;status=AI_MOVE;playerFirstHand=true;aiCards=27,19,26;deck=8,13,37,30,39,3,29,10,11,14,16,31,1,18,20,23,38,9,32,21,35,0,5,6,25,2,15,17,36,4,34,22,28;playerCard=12;trump=24;playerScore=0;
+Fri Sep 06 07:41:26 GMT+02:00 2013: aiWonGame=6;playerCards=33,7;aiCard=19;playerHand=true;playerWonGame=2;aiScore=0;status=CLOSE_HAND;playerFirstHand=true;aiCards=27,26;deck=8,13,37,30,39,3,29,10,11,14,16,31,1,18,20,23,38,9,32,21,35,0,5,6,25,2,15,17,36,4,34,22,28;playerCard=12;trump=24;playerScore=0;
+Fri Sep 06 07:41:28 GMT+02:00 2013: aiWonGame=6;playerCards=33,7;playerHand=false;playerWonGame=2;aiScore=11;status=DEAL;playerFirstHand=true;aiCards=27,26;deck=8,13,37,30,39,3,29,10,11,14,16,31,1,18,20,23,38,9,32,21,35,0,5,6,25,2,15,17,36,4,34,22,28;trump=24;playerScore=0;
+Fri Sep 06 07:41:28 GMT+02:00 2013: aiWonGame=6;playerCards=33,7,8;playerHand=false;playerWonGame=2;aiScore=11;status=AI_MOVE;playerFirstHand=true;aiCards=27,26,13;deck=37,30,39,3,29,10,11,14,16,31,1,18,20,23,38,9,32,21,35,0,5,6,25,2,15,17,36,4,34,22,28;trump=24;playerScore=0;
+Fri Sep 06 07:41:41 GMT+02:00 2013: aiWonGame=6;playerCards=33,7,8;aiCard=27;playerHand=false;playerWonGame=2;aiScore=11;status=PLAYER_MOVE;playerFirstHand=true;aiCards=26,13;deck=37,30,39,3,29,10,11,14,16,31,1,18,20,23,38,9,32,21,35,0,5,6,25,2,15,17,36,4,34,22,28;trump=24;playerScore=0;
+
+
+----------------------------------------------------------------------------------------------------------------------
+	Partenza da gioco finito errata (visualizza una situazione di gioco anomala che si ripristina toccando il mazzo)
+Tolto salvataggio a chiusura del gioco (salva solo dopo il deal)
+
+Fri Sep 06 10:50:51 GMT+02:00 2013: aiWonGame=6;playerCards=23,38,3;playerHand=true;playerWonGame=2;aiScore=6;status=PLAYER_MOVE;playerFirstHand=true;aiCards=24,30,18;deck=14,2,33,32,20,1,19,16,9,39,11,26,12;trump=34;playerScore=55;
+Fri Sep 06 10:50:54 GMT+02:00 2013: aiWonGame=6;playerCards=23,3;playerHand=true;playerWonGame=2;aiScore=6;status=AI_MOVE;playerFirstHand=true;aiCards=24,30,18;deck=14,2,33,32,20,1,19,16,9,39,11,26,12;playerCard=38;trump=34;playerScore=55;
+Fri Sep 06 10:50:55 GMT+02:00 2013: aiWonGame=6;playerCards=23,3;aiCard=30;playerHand=true;playerWonGame=2;aiScore=6;status=CLOSE_HAND;playerFirstHand=true;aiCards=24,18;deck=14,2,33,32,20,1,19,16,9,39,11,26,12;playerCard=38;trump=34;playerScore=55;
+Fri Sep 06 10:50:57 GMT+02:00 2013: aiWonGame=6;playerCards=23,3;playerHand=true;playerWonGame=3;aiScore=6;status=FINISHED;playerFirstHand=true;aiCards=24,18;deck=14,2,33,32,20,1,19,16,9,39,11,26,12;trump=34;playerScore=65;
+
+
+----------------------------------------------------------------------------------------------------------------------
+	Non mostra il toast di probabile vincita del giocatore
+
+Fixed
 
 Thu Sep 05 23:23:03 GMT+02:00 2013: aiWonGame=6;playerCards=39,35;playerHand=false;playerWonGame=1;aiScore=57;status=DEAL;playerFirstHand=false;aiCards=7,32;deck=14;trump=36;playerScore=43;
 Thu Sep 05 23:23:03 GMT+02:00 2013: aiWonGame=6;playerCards=39,35,36;playerHand=false;playerWonGame=1;aiScore=57;status=AI_MOVE;playerFirstHand=false;aiCards=7,32,14;deck=;trump=36;playerScore=43;
@@ -17,13 +50,3 @@ Thu Sep 05 23:23:19 GMT+02:00 2013: aiWonGame=6;playerCards=;playerHand=true;pla
 Thu Sep 05 23:23:19 GMT+02:00 2013: aiWonGame=6;playerCards=;aiCard=14;playerHand=true;playerWonGame=1;aiScore=57;status=CLOSE_HAND;playerFirstHand=false;aiCards=;deck=;playerCard=39;trump=36;playerScore=52;
 Thu Sep 05 23:23:26 GMT+02:00 2013: aiWonGame=6;playerCards=;playerHand=true;playerWonGame=2;aiScore=57;status=FINISHED;playerFirstHand=false;aiCards=;deck=;trump=36;playerScore=63;
 Thu Sep 05 23:23:27 GMT+02:00 2013: aiWonGame=6;playerCards=1,28,29;playerHand=true;playerWonGame=2;aiScore=0;status=PLAYER_MOVE;playerFirstHand=true;aiCards=17,4,5;deck=9,19,15,32,11,35,37,36,7,10,13,18,34,33,26,8,14,31,25,2,23,3,27,12,6,20,22,16,30,24,39,0,21;trump=38;playerScore=0;
-
-
-*	Analisi ha risposto immediatamente (sembra non aver analizzato nulla)
-
-Fri Sep 06 07:41:07 GMT+02:00 2013: aiWonGame=6;playerCards=12,33,7;playerHand=true;playerWonGame=2;aiScore=0;status=PLAYER_MOVE;playerFirstHand=true;aiCards=27,19,26;deck=8,13,37,30,39,3,29,10,11,14,16,31,1,18,20,23,38,9,32,21,35,0,5,6,25,2,15,17,36,4,34,22,28;trump=24;playerScore=0;
-Fri Sep 06 07:41:15 GMT+02:00 2013: aiWonGame=6;playerCards=33,7;playerHand=true;playerWonGame=2;aiScore=0;status=AI_MOVE;playerFirstHand=true;aiCards=27,19,26;deck=8,13,37,30,39,3,29,10,11,14,16,31,1,18,20,23,38,9,32,21,35,0,5,6,25,2,15,17,36,4,34,22,28;playerCard=12;trump=24;playerScore=0;
-Fri Sep 06 07:41:26 GMT+02:00 2013: aiWonGame=6;playerCards=33,7;aiCard=19;playerHand=true;playerWonGame=2;aiScore=0;status=CLOSE_HAND;playerFirstHand=true;aiCards=27,26;deck=8,13,37,30,39,3,29,10,11,14,16,31,1,18,20,23,38,9,32,21,35,0,5,6,25,2,15,17,36,4,34,22,28;playerCard=12;trump=24;playerScore=0;
-Fri Sep 06 07:41:28 GMT+02:00 2013: aiWonGame=6;playerCards=33,7;playerHand=false;playerWonGame=2;aiScore=11;status=DEAL;playerFirstHand=true;aiCards=27,26;deck=8,13,37,30,39,3,29,10,11,14,16,31,1,18,20,23,38,9,32,21,35,0,5,6,25,2,15,17,36,4,34,22,28;trump=24;playerScore=0;
-Fri Sep 06 07:41:28 GMT+02:00 2013: aiWonGame=6;playerCards=33,7,8;playerHand=false;playerWonGame=2;aiScore=11;status=AI_MOVE;playerFirstHand=true;aiCards=27,26,13;deck=37,30,39,3,29,10,11,14,16,31,1,18,20,23,38,9,32,21,35,0,5,6,25,2,15,17,36,4,34,22,28;trump=24;playerScore=0;
-Fri Sep 06 07:41:41 GMT+02:00 2013: aiWonGame=6;playerCards=33,7,8;aiCard=27;playerHand=false;playerWonGame=2;aiScore=11;status=PLAYER_MOVE;playerFirstHand=true;aiCards=26,13;deck=37,30,39,3,29,10,11,14,16,31,1,18,20,23,38,9,32,21,35,0,5,6,25,2,15,17,36,4,34,22,28;trump=24;playerScore=0;

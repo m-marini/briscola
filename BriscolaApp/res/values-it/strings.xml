@@ -16,6 +16,7 @@
     <string name="resume_message">Vuoi riprendere il gioco?</string>
     <string name="yes_text">Si</string>
     <string name="no_text">No</string>
+    <string name="default_think_time_value">10</string>
     <string name="playerCard1_desc">Carta sinistra giocatore</string>
     <string name="playerCard2_desc">Carta centrale giocatore</string>
     <string name="playerCard3_desc">Carta destra giocatore</string>
